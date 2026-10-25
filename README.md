@@ -232,9 +232,9 @@ The scripts follow the usual procd conventions:
 * `start_service` does nothing while `enabled` is `0`.
 * dae and honk are never on at the same time: both create the `dae0` link
   pair and the `daens` namespace and hook the same interfaces. Turning one on
-  (`enabled` plus a reload, which is what LuCI's Save & Apply does) turns the
-  other off and stops it, so switching is one step. A configuration edited by
-  hand with both on starts only the first; the other refuses and logs why.
+  in LuCI also turns the other off in the same Save & Apply, so switching is
+  one step. The init scripts only follow their own `enabled`: with both turned
+  on by hand, the one started second refuses and logs why.
 * `dae` runs `dae validate -c <config_file>` before every start; a
   configuration that fails the rule pipeline (including missing geo assets) is
   logged and dae is not started. That includes the restart for a changed

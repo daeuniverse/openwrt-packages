@@ -26,11 +26,11 @@ start_service() {
 	[ "$enabled" -eq 1 ] || return 1
 
 	# dae creates the same dae0 link pair and daens namespace and hooks the
-	# same interfaces, so the two never run at the same time. reload turns
-	# dae off when honk is turned on; this covers a configuration edited by
-	# hand and boot. A dae that is turned off is only on its way out (it
-	# takes a moment to detach), so it does not block; should it still hold the
-	# link pair, procd restarts honk shortly after.
+	# same interfaces, so the two never run at the same time. LuCI turns
+	# dae off when honk is turned on there; with both turned on by hand,
+	# the one started second refuses. A dae that is turned off is only
+	# on its way out (it takes a moment to detach), so it does not block;
+	# should it still hold the link pair, procd restarts honk shortly after.
 	if [ "$(uci -q get dae.config.enabled)" = 1 ] &&
 		ubus call service list '{"name":"dae"}' 2>/dev/null |
 		jsonfilter -q -e '@.dae.instances[*].running' | grep -q true; then
@@ -81,13 +81,6 @@ reload_service() {
 
 	local enabled config_file
 	config_get_bool enabled "config" "enabled" 0
-	# Only one of dae and honk is turned on: turning honk on turns dae off,
-	# and starting dae without an instance stops it but keeps its triggers.
-	if [ "$enabled" -eq 1 ] && [ "$(uci -q get dae.config.enabled)" = 1 ]; then
-		uci set dae.config.enabled=0
-		uci commit dae
-		/etc/init.d/dae start
-	fi
 	config_get config_file "config" "config_file" "/etc/honk/config.dae"
 	if [ "$enabled" -eq 1 ] && procd_running "$CONF" "$CONF" &&
 		ubus call service list "{\"name\":\"$CONF\"}" 2>/dev/null |

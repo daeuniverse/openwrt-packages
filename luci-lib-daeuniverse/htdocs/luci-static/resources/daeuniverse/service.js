@@ -15,7 +15,8 @@
  * supplies `app`:
  *
  *   name           service, UCI package and init script
- *   other          the service that cannot run at the same time
+ *   other          the service that cannot run at the same time; turning this
+ *                  one on here turns that one off in the same apply
  *   defaultConfig  entry file when UCI has none
  *   validate       [ command, args ] that take the entry file and exit non-zero
  *                  on a broken configuration, or null
@@ -33,6 +34,16 @@ const callInitAction = rpc.declare({
 	object: 'rc',
 	method: 'init',
 	params: [ 'name', 'action' ]
+});
+
+// An option of a UCI package that may not exist: '' instead of an exception
+// when it does not
+const callUciGet = rpc.declare({
+	object: 'uci',
+	method: 'get',
+	params: [ 'config', 'section', 'option' ],
+	expect: { value: '' },
+	reject: false
 });
 
 const callLogRead = rpc.declare({
@@ -286,7 +297,10 @@ const ServiceView = view.extend({
 	app: null,
 
 	load() {
-		return uci.load(this.app.name).then(() => {
+		// The other service may not be installed; its switch is then left alone
+		return callUciGet(this.app.other, 'config', 'enabled').then(value =>
+			uci.load(value !== '' ? [ this.app.name, this.app.other ] : this.app.name)
+		).then(() => {
 			const entry = uci.get(this.app.name, 'config', 'config_file') || this.app.defaultConfig;
 			// A file the page may not read leaves the status and the log usable,
 			// so config_file can be set back from here.
@@ -425,7 +439,7 @@ const ServiceView = view.extend({
 	},
 
 	render([ entry, files ]) {
-		const { name, title, defaultConfig } = this.app;
+		const { name, title, other, defaultConfig } = this.app;
 
 		document.head.appendChild(E('style', {}, STYLE));
 
@@ -444,8 +458,15 @@ const ServiceView = view.extend({
 		o.cfgvalue = () => '<span id="' + name + '-status"><em>…</em></span>';
 
 		o = s.option(form.Flag, 'enabled', _('Enable'),
-			_('dae and honk cannot run at the same time; enabling %s turns %s off.').format(name, this.app.other));
+			_('dae and honk cannot run at the same time; enabling %s turns %s off.').format(name, other));
 		o.rmempty = false;
+		// Both changes go out in one apply, and each init script follows its own
+		// switch. A missing package has no enabled option and is left alone.
+		o.write = function(section_id, value) {
+			if (value === '1' && uci.get(other, 'config', 'enabled') === '1')
+				uci.set(other, 'config', 'enabled', '0');
+			return form.Flag.prototype.write.apply(this, arguments);
+		};
 
 		o = s.option(form.Value, 'config_file', _('Configuration file'));
 		o.placeholder = defaultConfig;
