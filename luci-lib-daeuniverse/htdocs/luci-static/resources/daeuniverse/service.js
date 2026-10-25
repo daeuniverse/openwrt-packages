@@ -429,10 +429,10 @@ const ServiceView = view.extend({
 			const lines = entries
 				.filter(e => this.app.logIdent.test(e.msg))
 				.slice(-500)
-				.map(e => new Date(e.time).toLocaleString() + '  ' + e.msg);
+				.map((e, i) => [ i ? '\n' : '', E('span', { 'class': 'du-p' }, new Date(e.time).toLocaleString()), '  ' + e.msg ]);
 			const log = this.logBox;
 			const atBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 4;
-			log.textContent = lines.length ? lines.join('\n') : _('No log entries.');
+			log.replaceChildren(...(lines.length ? lines.flat() : [ _('No log entries.') ]));
 			if (atBottom)
 				log.scrollTop = log.scrollHeight;
 		});
