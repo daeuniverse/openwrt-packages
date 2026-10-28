@@ -10,16 +10,13 @@
 # interface of the IPv4 default route. Set lan_interface to your LAN device
 # list (comma separated) if it differs.
 #
-# Embedded UI: this build embeds the pinned doona UI (native-ui feature). The
-# native API below serves it at http://127.0.0.1:9527/ without downloading or
-# building anything at runtime. Keep the listener on loopback and reach it
-# through SSH port forwarding:
+# Open http://127.0.0.1:9527/ locally, or forward the router's listener first:
 #
 #   ssh -L 9527:127.0.0.1:9527 root@<router>
 #
-# then open http://127.0.0.1:9527/. Anonymous loopback access is for local setup
-# only; replace it with `secret: '<long random token>'` when exposing the API
-# through a reverse proxy, and terminate TLS there.
+# The first visit creates the administrator. Sign in to edit configuration.
+# For a reverse proxy, terminate TLS there; for token authentication, replace
+# password_auth with secret.
 
 global {
     wan_interface: auto
@@ -27,7 +24,7 @@ global {
     log_level: info
     dial_mode: domain++
     auto_config_kernel_parameter: true
-    data_dir: '/var/lib/honk'
+    data_dir: '/etc/honk/data'
     # Empty: log to stdout, which procd forwards to syslog/logread.
     log_file: ''
     tcp_check_url: 'https://www.gstatic.com/generate_204'
@@ -70,8 +67,10 @@ experimental {
     native_api {
         enabled: true
         listen: '127.0.0.1:9527'
-        allow_anonymous_loopback: true
+        password_auth: true
+        config_write: true
         ui: 'embedded'
+        # ui: 'embedded-lite'   # doona lite, honk v0.1.0-beta.4 and later
     }
     cache_file {
         enabled: true
