@@ -112,6 +112,8 @@ define Package/honk/install
 	$(INSTALL_CONF) $(PKG_DIR)/files/honk.config $(1)/etc/config/honk
 	$(INSTALL_DIR) $(1)/etc/honk
 	$(INSTALL_CONF) $(PKG_DIR)/files/config.dae $(1)/etc/honk/config.dae
+	$(INSTALL_DIR) $(1)/lib/upgrade/keep.d
+	printf '%s\n' '/etc/honk/data/' > $(1)/lib/upgrade/keep.d/honk
 	# v2ray-geoip/geosite install the files under /usr/share/v2ray. honk's
 	# find_dat looks in /usr/share/honk before /usr/share/dae.
 	$(INSTALL_DIR) $(1)/usr/share/honk

@@ -1,11 +1,8 @@
 # openwrt-packages
 
-Builds a BTF-enabled `vmlinux` and the `vmlinux-btf` package for every OpenWrt
-target of the [supported architectures](#architectures), and the `dae` and
-`honk` packages for those architectures, then publishes everything in a single
-GitHub Release per kernel version. The same packages, plus LuCI
-apps for dae and honk, are published as a signed apk
-[package feed](#package-feed) at <https://openwrt.daeuniverse.org/>.
+This feed provides BTF-enabled `vmlinux` packages for the [supported OpenWrt architectures](#architectures).
+It also provides dae, [honk](https://github.com/daeuniverse/honk#readme), and their LuCI apps as a signed apk [package feed](#package-feed).
+For doona, see its [README](https://github.com/Zakkaus/doona#readme).
 
 The BTF is produced the way the OpenWrt package
 [QiuSimons/vmlinux-btf](https://github.com/QiuSimons/vmlinux-btf) does it: a few
@@ -264,32 +261,9 @@ and honk 6.12 or newer; OpenWrt 25.12 runs 6.12.
 
 ### honk's embedded UI
 
-The honk package is built with the full feature set — the crate defaults
-(`clash-api`, `mimalloc`, `rprx`) plus `ebpf` and `native-ui` — so the pinned
-doona dashboard is embedded in `/usr/bin/honk-core`. Doona is downloaded as a
-release archive at build time (SHA-256 verified against honk's
-`.github/ci/pins.env`); the frontend is never compiled here.
-
-The shipped `/etc/honk/config.dae` enables it on loopback:
-
-```dae
-experimental {
-    native_api {
-        enabled: true
-        listen: '127.0.0.1:9527'
-        allow_anonymous_loopback: true
-        ui: 'embedded'
-    }
-}
-```
-
-Reach it through SSH port forwarding (`ssh -L 9527:127.0.0.1:9527 root@router`)
-and open `http://127.0.0.1:9527/`. Anonymous loopback access is for local setup;
-replace it with `secret: '<long random token>'` (and terminate TLS at a reverse
-proxy) before exposing the API on any other interface. honk keeps runtime state
-in `global.data_dir` (`/var/lib/honk` by default); on OpenWrt `/var` is a tmpfs,
-so Selector choices and subscription caches do not survive a reboot — point
-`data_dir` at persistent storage if that matters.
+See the [shipped configuration](honk/files/config.dae) for defaults and first access,
+and the [doona quick start](https://doona.daeuniverse.org/en/quick-start.html) for UI usage.
+The package's [sysupgrade keep rule](honk/Makefile#L115-L116) preserves the data directory.
 
 ## LuCI apps
 
