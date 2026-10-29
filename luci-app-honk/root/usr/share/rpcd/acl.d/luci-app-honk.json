@@ -15,10 +15,11 @@
 		},
 		"write": {
 			"file": {
-				"/etc/honk/*": [ "write" ]
+				"/etc/honk/*": [ "write" ],
+				"/usr/bin/apk": [ "exec" ]
 			},
 			"ubus": {
-				"file": [ "write" ],
+				"file": [ "write", "exec" ],
 				"rc": [ "init" ]
 			},
 			"uci": [ "honk", "dae" ]

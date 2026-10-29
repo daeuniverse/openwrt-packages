@@ -16,6 +16,7 @@
 		"write": {
 			"file": {
 				"/etc/dae/*": [ "write" ],
+				"/usr/bin/apk": [ "exec" ],
 				"/usr/bin/dae validate -c *": [ "exec" ]
 			},
 			"ubus": {

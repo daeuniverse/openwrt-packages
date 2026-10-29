@@ -101,6 +101,13 @@ define Package/honk/conffiles
 /etc/honk/config.dae
 endef
 
+define Package/honk/postinst
+#!/bin/sh
+[ -z "$${IPKG_INSTROOT}" ] || exit 0
+/etc/init.d/honk enabled && /etc/init.d/honk restart
+exit 0
+endef
+
 define Package/honk/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/honk-core $(1)/usr/bin/honk-core

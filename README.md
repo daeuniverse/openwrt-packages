@@ -157,6 +157,8 @@ apk add 25.12.6-dae-2.1.1-aarch64_cortex-a76.apk
 apk add 25.12.6-honk-0.1.0_beta4-aarch64_cortex-a76.apk
 ```
 
+<a id="local-package-pin"></a>
+
 apk pins a package installed from a file to that file in `/etc/apk/world`.
 Once the [package feed](#package-feed) carries another version, every
 `apk add`, even of unrelated tools, fails with an error such as
@@ -277,10 +279,10 @@ and engine problems to [honk](https://github.com/daeuniverse/honk/issues).
 `luci-app-dae` and `luci-app-honk` add **Services → dae** and **Services →
 honk** to LuCI. They share the page from `luci-lib-daeuniverse`, with three tabs:
 
-* **Service status**: shows whether the service is running, its enabled switch
-  and configuration file. The page can only read and write files under
-  `/etc/dae` or `/etc/honk`. Save & Apply starts or stops the service through
-  its init script.
+* **Service status**: shows whether the service is running, its installed package
+  version, enabled switch and configuration file. The configuration editor can
+  only read and write files under `/etc/dae` or `/etc/honk`. Save & Apply starts
+  or stops the service through its init script.
 * **Configuration**: edits the main configuration file and files loaded with
   `include`, with syntax highlighting. Each tab saves to its own file.
   For an enabled service, saving reloads it or starts it if stopped.
@@ -354,6 +356,24 @@ ImmortalWrt only needs a matching architecture.
 To mirror the feed, use `rsync://openwrt.daeuniverse.org/openwrt-daeuniverse/`;
 see `<lang>/mirror.html`. Import the key from this site, not the mirror,
 and set `FEED` to the mirror URL.
+
+## Upgrading
+
+After setting up the package feed, run on the router:
+
+```sh
+apk update
+apk upgrade dae honk luci-app-dae luci-app-honk v2ray-geoip v2ray-geosite
+```
+
+Name only the packages that are installed. apk upgrades their dependencies,
+such as `vmlinux-btf`, when a new version needs them. In LuCI, use **Check for
+updates** and then **Upgrade** under **Services → dae** or **Services → honk**,
+or the **Updates** tab under **System → Software**.
+Upgrades retain configuration files. apk saves changed package defaults as
+`.apk-new` files beside modified configuration files.
+If apk reports `breaks: world[…]` after installation from a downloaded package,
+see the [local package pin note](#local-package-pin).
 
 ## Architectures
 

@@ -308,7 +308,7 @@ const ServiceView = view.extend({
 			return Promise.all([ entry, collectFiles(entry, readFromDisk).catch(err => {
 				ui.addNotification(null, E('p', _('Unable to read %s: %s').format(entry, err.message)), 'error');
 				return [];
-			}) ]);
+			}), this.queryPackages(true).catch(error => ({ error })) ]);
 		});
 	},
 
@@ -414,6 +414,97 @@ const ServiceView = view.extend({
 				E('p', _('Saved, but the service could not be reloaded: %s').format(err.message)), 'warning'));
 	},
 
+	/* Packages */
+
+	async runApk(args) {
+		const result = await fs.exec('/usr/bin/apk', [ '--interactive=no', '--progress=no', ...args ]);
+		if (result.code !== 0) {
+			const error = new Error(_('apk exited with code %s.').format(result.code));
+			error.output = (result.stdout || '') + (result.stderr || '');
+			throw error;
+		}
+		return result;
+	},
+
+	async queryPackages(installed, packages) {
+		const names = packages || [ this.app.name, 'luci-app-' + this.app.name, 'luci-lib-daeuniverse',
+			'v2ray-geoip', 'v2ray-geosite' ];
+		const result = await this.runApk([ 'query', '--network=no',
+			...(installed ? [ '--installed', '--from', 'installed' ] : [ '--upgradable' ]),
+			'--fields', 'name,version', '--format', 'json', ...names ]);
+		return JSON.parse(result.stdout).filter(pkg => names.includes(pkg.name));
+	},
+
+	packageError(error) {
+		const output = error.output ?? error.message;
+		const nodes = [ E('p', {}, error.message), E('pre', { 'class': 'du-log' }, output) ];
+		if (new RegExp('breaks: world\\[' + this.app.name + '(?=[\\]@<>=~])').test(output))
+			nodes.push(E('p', {}, _('To follow the feed instead, run %s, adding the other packages to the same command if needed.')
+				.format('apk add ' + this.app.name + '@daeuniverse')));
+		return nodes;
+	},
+
+	async handleCheckUpdates() {
+		this.checkButton.disabled = true;
+		this.packageStatus.replaceChildren(_('Checking for updates…'));
+		try {
+			await this.runApk([ 'update' ]);
+			const installed = await this.queryPackages(true);
+			if (!installed.some(pkg => pkg.name === this.app.name))
+				throw new Error(_('Not installed'));
+			const updates = await this.queryPackages(false, installed.map(pkg => pkg.name));
+			if (!updates.length) {
+				this.packageStatus.replaceChildren(_('Up to date'));
+				return;
+			}
+			this.packageStatus.replaceChildren();
+			const current = Object.fromEntries(installed.map(pkg => [ pkg.name, pkg.version ]));
+			const boxes = updates.map(pkg => E('input', { 'type': 'checkbox', 'checked': true, 'value': pkg.name,
+				'change': () => { upgrade.disabled = !boxes.some(box => box.checked); } }));
+			const upgrade = E('button', {
+				'class': 'btn cbi-button-action',
+				'click': () => this.handleUpgrade(boxes.filter(box => box.checked).map(box => box.value))
+			}, _('Upgrade'));
+			ui.showModal(_('Upgrade'), [
+				E('p', {}, _('Select the packages to upgrade:')),
+				E('ul', {}, updates.map((pkg, i) => E('li', {}, E('label', {}, [
+					boxes[i], ' ', pkg.name + ': ' + current[pkg.name] + ' → ' + pkg.version
+				])))),
+				E('p', {}, _('Upgrading restarts the service and interrupts connections for a few seconds. Continue?')),
+				E('div', { 'class': 'right' }, [
+					E('button', { 'class': 'btn', 'click': ui.hideModal }, _('Cancel')),
+					' ',
+					upgrade
+				])
+			]);
+		}
+		catch (error) {
+			this.packageStatus.replaceChildren(...this.packageError(error));
+		}
+		finally {
+			this.checkButton.disabled = false;
+		}
+	},
+
+	async handleUpgrade(packages) {
+		ui.showModal(_('Upgrade'), [ E('p', { 'class': 'spinning' }, _('Upgrading…')) ]);
+		try {
+			const result = await this.runApk([ 'upgrade', ...packages ]);
+			ui.showModal(_('Upgrade'), [
+				E('pre', { 'class': 'du-log' }, (result.stdout || '') + (result.stderr || '')),
+				E('p', {}, _('Upgrade complete.')),
+				E('div', { 'class': 'right' }, E('button', {
+					'class': 'btn', 'click': () => window.location.reload()
+				}, _('Close')))
+			]);
+		}
+		catch (error) {
+			ui.showModal(_('Upgrade failed'), [ ...this.packageError(error),
+				E('div', { 'class': 'right' }, E('button', { 'class': 'btn', 'click': ui.hideModal }, _('Close')))
+			]);
+		}
+	},
+
 	/* Status and log */
 
 	updateStatus() {
@@ -439,7 +530,7 @@ const ServiceView = view.extend({
 		});
 	},
 
-	async render([ entry, files ]) {
+	async render([ entry, files, installed ]) {
 		const { name, title, other, defaultConfig } = this.app;
 
 		document.head.appendChild(E('style', {}, STYLE));
@@ -457,6 +548,18 @@ const ServiceView = view.extend({
 		let o = s.option(form.DummyValue, '_status', _('Status'));
 		o.rawhtml = true;
 		o.cfgvalue = () => '<span id="' + name + '-status"><em>…</em></span>';
+
+		this.packageStatus = E('div', { 'aria-live': 'polite' });
+		this.checkButton = E('button', {
+			'class': 'btn cbi-button', 'type': 'button',
+			'click': () => this.handleCheckUpdates()
+		}, _('Check for updates'));
+		o = s.option(form.DummyValue, '_version', _('Version'));
+		o.renderWidget = () => E('div', {}, [
+			E('span', {}, installed.error ? _('Unable to read version: %s').format(installed.error.message)
+				: installed.find(pkg => pkg.name === name)?.version || _('Not installed')),
+			' ', this.checkButton, this.packageStatus
+		]);
 
 		o = s.option(form.Flag, 'enabled', _('Enable'),
 			_('dae and honk cannot run at the same time; enabling %s turns %s off.').format(name, other));
