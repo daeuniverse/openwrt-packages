@@ -71,3 +71,18 @@ msgstr "配置"
 
 msgid "Refresh"
 msgstr "刷新"
+
+msgid "Web interface"
+msgstr "网页界面"
+
+msgid "Open doona"
+msgstr "打开 doona"
+
+msgid "doona listens on %s; open it through an SSH tunnel:"
+msgstr "doona 监听 %s；请通过 SSH 隧道访问："
+
+msgid "To open it from the LAN instead, set %s and restart honk."
+msgstr "如需从局域网直接打开，请设置 %s 并重启 honk。"
+
+msgid "honk only accepts IP addresses; open LuCI by IP address."
+msgstr "honk 仅接受 IP 地址；请使用 IP 地址打开 LuCI。"

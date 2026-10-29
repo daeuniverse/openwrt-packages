@@ -11,7 +11,7 @@
 				"log": [ "read" ],
 				"service": [ "list" ]
 			},
-			"uci": [ "honk", "dae" ]
+			"uci": [ "honk", "dae", "network" ]
 		},
 		"write": {
 			"file": {

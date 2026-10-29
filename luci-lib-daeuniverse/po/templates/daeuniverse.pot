@@ -88,3 +88,23 @@ msgstr ""
 #: htdocs/luci-static/resources/daeuniverse/service.js:447
 msgid "dae and honk cannot run at the same time; enabling %s turns %s off."
 msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js:483
+msgid "Web interface"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js:489
+msgid "Open doona"
+msgstr ""
+
+#: ../luci-app-honk/htdocs/luci-static/resources/view/honk/main.js:49
+msgid "doona listens on %s; open it through an SSH tunnel:"
+msgstr ""
+
+#: ../luci-app-honk/htdocs/luci-static/resources/view/honk/main.js:53
+msgid "To open it from the LAN instead, set %s and restart honk."
+msgstr ""
+
+#: ../luci-app-honk/htdocs/luci-static/resources/view/honk/main.js:63
+msgid "honk only accepts IP addresses; open LuCI by IP address."
+msgstr ""
