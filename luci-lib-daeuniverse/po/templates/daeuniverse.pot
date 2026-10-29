@@ -108,3 +108,66 @@ msgstr ""
 #: ../luci-app-honk/htdocs/luci-static/resources/view/honk/main.js:63
 msgid "honk only accepts IP addresses; open LuCI by IP address."
 msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Version"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Check for updates"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Checking for updates…"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Up to date"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Upgrade"
+msgstr ""
+
+msgid "Select the packages to upgrade:"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Upgrading restarts the service and interrupts connections for a few seconds. Continue?"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Upgrading…"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Upgrade complete."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Upgrade failed"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "apk exited with code %s."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "To follow the feed instead, run %s, adding the other packages to the same command if needed."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Unable to read version: %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Not installed"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Cancel"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Close"
+msgstr ""

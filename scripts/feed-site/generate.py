@@ -71,6 +71,9 @@ TEXT = {
 		'repos_note': 'The <code>@daeuniverse</code> tag selects packages from this feed. Without it, apk prefers system packages.',
 		'add': 'Install the packages',
 		'add_note': 'Without LuCI, leave out the <code>luci-</code> packages.',
+		'upgrade': 'Upgrading',
+		'upgrade_note': 'Run the commands below on the router, naming only the packages that are installed. In LuCI, you can also use <kbd>Check for updates</kbd> and then <kbd>Upgrade</kbd> under <kbd>Services</kbd> → <kbd>{app}</kbd>, or the <kbd>Updates</kbd> tab under <kbd>System</kbd> → <kbd>Software</kbd>.',
+		'upgrade_config': 'Upgrades retain configuration files. apk saves changed package defaults as <code>.apk-new</code> files beside modified configuration files. If apk reports <code>breaks: world[…]</code> after installation from a downloaded package, see the <a href="#local-package-pin">local package pin note</a>.',
 		'start': 'Enable the service',
 		'start_note': '<span data-app="dae">Edit <code>{conf}</code> for your network before enabling the service.</span><span data-app="honk">The default <code>{conf}</code> uses <code>br-lan</code> as the LAN interface; edit it first only if your LAN device differs.</span> Then enable it in LuCI under <kbd>Services</kbd> → <kbd>{app}</kbd>, or run these commands on the router:',
 		'config_note': 'For configuration syntax, see the {docs}. <span data-app="honk">To open doona, visit <code>http://&lt;router LAN IP&gt;:9527/</code> from a computer on the LAN, for example <a href="http://192.168.1.1:9527/">http://192.168.1.1:9527/</a>. Use the IP address; honk refuses host names such as <code>openwrt.lan</code>. Create the administrator account on the first visit, then sign in to edit the configuration. Like LuCI, the page uses plain HTTP on the LAN; the default OpenWrt firewall keeps the port closed on WAN. See the <a href="https://doona.daeuniverse.org/en/">doona documentation</a> for UI instructions. Report UI problems to <a href="https://github.com/Zakkaus/doona/issues">doona</a> and engine problems to <a href="https://github.com/daeuniverse/honk/issues">honk</a>.</span>',
@@ -151,6 +154,9 @@ TEXT = {
 		'repos_note': '<code>@daeuniverse</code> 标签指定从本软件源安装软件包。不带标签时，apk 优先使用系统软件包。',
 		'add': '安装软件包',
 		'add_note': '不使用 LuCI 时，省略<code>luci-</code>开头的软件包。',
+		'upgrade': '升级',
+		'upgrade_note': '在路由器上执行以下命令，命令中只写已安装的软件包。也可在 LuCI 的<kbd>服务</kbd> → <kbd>{app}</kbd> 中点击<kbd>检查更新</kbd>后再点击<kbd>升级</kbd>，或使用<kbd>系统</kbd> → <kbd>软件包</kbd>中的<kbd>更新</kbd>页。',
+		'upgrade_config': '升级会保留配置文件；软件包默认配置有变化时，新版本会以 <code>.apk-new</code> 文件保存在已修改的配置文件旁。用下载的软件包安装后，如果 apk 报告 <code>breaks: world[…]</code>，请参阅<a href="#local-package-pin">本地软件包锁定说明</a>。',
 		'start': '启用服务',
 		'start_note': '<span data-app="dae">启用服务前，按网络环境修改 <code>{conf}</code>。</span><span data-app="honk">默认的 <code>{conf}</code> 以 <code>br-lan</code> 为 LAN 接口，LAN 设备不同时才需先修改。</span>然后在 LuCI 的<kbd>服务</kbd> → <kbd>{app}</kbd> 中启用服务，或在路由器上执行以下命令：',
 		'config_note': '配置语法见 {docs}。<span data-app="honk">要打开 doona，在局域网内的电脑上访问 <code>http://&lt;路由器 LAN IP&gt;:9527/</code>，例如 <a href="http://192.168.1.1:9527/">http://192.168.1.1:9527/</a>。请使用 IP 地址，honk 会拒绝 <code>openwrt.lan</code> 等主机名。首次访问时创建管理员账户，再登录编辑配置。与 LuCI 相同，该页面在局域网内使用明文 HTTP；OpenWrt 默认防火墙不会在 WAN 侧开放该端口。界面操作见 <a href="https://doona.daeuniverse.org/zh-CN/">doona 文档</a>。界面问题请向 <a href="https://github.com/Zakkaus/doona/issues">doona</a> 反馈，引擎问题请向 <a href="https://github.com/daeuniverse/honk/issues">honk</a> 反馈。</span>',
@@ -231,6 +237,9 @@ TEXT = {
 		'repos_note': '<code>@daeuniverse</code> 標籤指定從本軟體源安裝套件。不帶標籤時，apk 優先使用系統套件。',
 		'add': '安裝套件',
 		'add_note': '不使用 LuCI 時，省略<code>luci-</code>開頭的套件。',
+		'upgrade': '升級',
+		'upgrade_note': '在路由器上執行以下指令，指令中只寫已安裝的套件。也可在 LuCI 的<kbd>服務</kbd> → <kbd>{app}</kbd> 中點選<kbd>檢查更新</kbd>後再點選<kbd>升級</kbd>，或使用<kbd>系統</kbd> → <kbd>軟體</kbd>中的<kbd>更新</kbd>分頁。',
+		'upgrade_config': '升級會保留設定檔；套件預設設定有變更時，新版本會以 <code>.apk-new</code> 檔案儲存在已修改的設定檔旁。用下載的套件安裝後，如果 apk 回報 <code>breaks: world[…]</code>，請參閱<a href="#local-package-pin">本機套件鎖定說明</a>。',
 		'start': '啟用服務',
 		'start_note': '<span data-app="dae">啟用服務前，依網路環境修改 <code>{conf}</code>。</span><span data-app="honk">預設的 <code>{conf}</code> 以 <code>br-lan</code> 為 LAN 介面，LAN 裝置不同時才需先修改。</span>然後在 LuCI 的<kbd>服務</kbd> → <kbd>{app}</kbd> 中啟用服務，或在路由器上執行以下指令：',
 		'config_note': '設定語法見 {docs}。<span data-app="honk">要開啟 doona，在區域網路內的電腦上前往 <code>http://&lt;路由器 LAN IP&gt;:9527/</code>，例如 <a href="http://192.168.1.1:9527/">http://192.168.1.1:9527/</a>。請使用 IP 位址，honk 會拒絕 <code>openwrt.lan</code> 等主機名稱。首次開啟時建立管理員帳號，再登入編輯設定。與 LuCI 相同，此頁面在區域網路內使用明文 HTTP；OpenWrt 預設防火牆不會在 WAN 側開放此連接埠。介面操作見 <a href="https://doona.daeuniverse.org/zh-TW/">doona 文件</a>。介面問題請向 <a href="https://github.com/Zakkaus/doona/issues">doona</a> 回報，引擎問題請向 <a href="https://github.com/daeuniverse/honk/issues">honk</a> 回報。</span>',
@@ -478,7 +487,7 @@ def guide(lang, T, builds, base):
 		arches = ''
 
 	errors = ''.join(
-		f'<details class="reference"><summary class="mono">{esc(e)}</summary><p>{c}</p></details>'
+		f'<details class="reference"' + (' id="local-package-pin"' if e.startswith('breaks: world[') else '') + f'><summary class="mono">{esc(e)}</summary><p>{c}</p></details>'
 		for e, c in T['error_items'])
 	kernel = T['th_kernel']
 	versions = ''.join(f'<tr><td>{esc(v)}</td><td data-label="{kernel}">{esc(k)}</td><td>{status}</td></tr>' for v, k, status in T['version_rows'])
@@ -518,6 +527,10 @@ def guide(lang, T, builds, base):
 {per_app(lambda app: f"uci set {app}.config.enabled=1\nuci commit {app}\n/etc/init.d/{app} enable\n/etc/init.d/{app} start")}
 <p>{T["config_note"]}</p></li>
 </ol>
+<h3>{T["upgrade"]}</h3>
+<p>{T["upgrade_note"]}</p>
+{code("apk update\napk upgrade dae honk luci-app-dae luci-app-honk v2ray-geoip v2ray-geosite", T)}
+<p>{T["upgrade_config"]}</p>
 
 {h2["errors"]}
 {errors}

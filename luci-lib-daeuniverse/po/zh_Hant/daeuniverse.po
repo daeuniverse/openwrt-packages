@@ -86,3 +86,51 @@ msgstr "若要從區域網路直接開啟，請設定 %s 並重新啟動 honk。
 
 msgid "honk only accepts IP addresses; open LuCI by IP address."
 msgstr "honk 僅接受 IP 位址；請使用 IP 位址開啟 LuCI。"
+
+msgid "Version"
+msgstr "版本"
+
+msgid "Check for updates"
+msgstr "檢查更新"
+
+msgid "Checking for updates…"
+msgstr "正在檢查更新…"
+
+msgid "Up to date"
+msgstr "已是最新版本"
+
+msgid "Upgrade"
+msgstr "升級"
+
+msgid "Select the packages to upgrade:"
+msgstr "選擇要升級的套件："
+
+msgid "Upgrading restarts the service and interrupts connections for a few seconds. Continue?"
+msgstr "升級將重新啟動服務，連線將中斷數秒。是否繼續？"
+
+msgid "Upgrading…"
+msgstr "正在升級…"
+
+msgid "Upgrade complete."
+msgstr "升級完成。"
+
+msgid "Upgrade failed"
+msgstr "升級失敗"
+
+msgid "apk exited with code %s."
+msgstr "apk 已結束，結束代碼為 %s。"
+
+msgid "To follow the feed instead, run %s, adding the other packages to the same command if needed."
+msgstr "若要改為跟隨本軟體源，請執行 %s，必要時將其他套件加入同一行命令。"
+
+msgid "Unable to read version: %s"
+msgstr "無法讀取版本：%s"
+
+msgid "Not installed"
+msgstr "未安裝"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Close"
+msgstr "關閉"

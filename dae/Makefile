@@ -90,6 +90,13 @@ define Package/dae/conffiles
 /etc/dae/config.dae
 endef
 
+define Package/dae/postinst
+#!/bin/sh
+[ -z "$${IPKG_INSTROOT}" ] || exit 0
+/etc/init.d/dae enabled && /etc/init.d/dae restart
+exit 0
+endef
+
 define Package/dae/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dae $(1)/usr/bin/dae
