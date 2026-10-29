@@ -241,12 +241,12 @@ or newer. OpenWrt 25.12 runs 6.12.
 
 ### honk's embedded UI
 
-honk serves doona on `127.0.0.1:9527`, which only accepts local connections.
-After enabling honk, run `ssh -L 9527:127.0.0.1:9527 root@<router>` on your
-computer, replacing `<router>` with the router address.
-Keep the SSH connection open and visit <http://127.0.0.1:9527/> in your browser.
-Create the administrator account on the first visit, then sign in to edit
-the configuration.
+honk serves doona on port 9527 of every router address. After enabling honk,
+visit `http://<router LAN IP>:9527/` from the LAN, for example
+<http://192.168.1.1:9527/>. Use the IP address: honk refuses host names such
+as `openwrt.lan`. Create the administrator account on the first visit, then
+sign in to edit the configuration. Like LuCI, the page uses plain HTTP on the
+LAN; OpenWrt's default firewall keeps the port closed on WAN.
 
 The [shipped configuration](honk/files/config.dae) enables `password_auth` and
 `config_write` on the native API.
