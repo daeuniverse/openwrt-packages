@@ -223,8 +223,9 @@ function highlightLine(line) {
 }
 
 /*
- * Mid-tone colors that stay readable on the light and dark variants of the
- * bundled themes; the themes have no shared palette to borrow from.
+ * The themes have no shared palette, and no single color reaches 4.5:1 on both
+ * white and dark backgrounds. Each hue is mixed with the theme's own text color,
+ * which darkens it on light themes and lightens it on dark ones.
  */
 const STYLE = `
 .du-editor { position: relative; height: 60vh; min-height: 300px; border: 1px solid rgba(128,128,128,.4); border-radius: 4px; overflow: hidden; }
@@ -238,13 +239,13 @@ const STYLE = `
    push the colored text away from the caret, so only color is allowed here. */
 .du-editor pre * { background: none; padding: 0; margin: 0; border: 0; font: inherit; }
 .du-editor textarea { color: transparent; resize: none; outline: none; max-width: none; min-height: 0; }
-.du-c { color: #8a8a8a; }
-.du-s, .du-running { color: #2e9e5b; }
-.du-o, .du-stopped { color: #d14d4d; }
-.du-f { color: #c7841a; }
-.du-k { color: #a35bd0; }
-.du-n { color: #c4660a; }
-.du-p { color: #3d7ed6; }
+.du-c { color: color-mix(in srgb, #8a8a8a 60%, currentColor); }
+.du-s, .du-running { color: color-mix(in srgb, #2e9e5b 60%, currentColor); }
+.du-o, .du-stopped { color: color-mix(in srgb, #d14d4d 60%, currentColor); }
+.du-f { color: color-mix(in srgb, #c7841a 60%, currentColor); }
+.du-k { color: color-mix(in srgb, #a35bd0 60%, currentColor); }
+.du-n { color: color-mix(in srgb, #c4660a 60%, currentColor); }
+.du-p { color: color-mix(in srgb, #3d7ed6 60%, currentColor); }
 /* The page buttons save the settings of the status tab only; the editor has its own. */
 body:has(.du-panes > [data-tab="status"]:not([data-tab-active="true"])) .cbi-page-actions { display: none; }
 .du-panes .right { margin: .5em 0; }
