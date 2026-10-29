@@ -21,6 +21,7 @@
  *   validate       [ command, args ] that take the entry file and exit non-zero
  *                  on a broken configuration, or null
  *   logIdent       RegExp matching the start of the service's log messages
+ *   webUi          optional async hook: loaded files to { url?, note? } or null
  */
 
 const callServiceList = rpc.declare({
@@ -438,7 +439,7 @@ const ServiceView = view.extend({
 		});
 	},
 
-	render([ entry, files ]) {
+	async render([ entry, files ]) {
 		const { name, title, other, defaultConfig } = this.app;
 
 		document.head.appendChild(E('style', {}, STYLE));
@@ -477,6 +478,19 @@ const ServiceView = view.extend({
 			return (normalize(value) === value && value.startsWith(dir + '/')) || _('Must be a file in %s').format(dir);
 		};
 
+		const webUi = await this.app.webUi?.(files);
+		if (webUi?.url || webUi?.note) {
+			o = s.option(form.DummyValue, '_web_ui', _('Web interface'));
+			o.renderWidget = () => webUi.url ? E('a', {
+				'class': 'btn cbi-button',
+				'href': webUi.url,
+				'target': '_blank',
+				'rel': 'noopener noreferrer'
+			}, _('Open doona')) : E('span', {}, webUi.note);
+			if (webUi.url && webUi.note)
+				o.description = webUi.note;
+		}
+
 		return m.render().then(mapNode => {
 			const logPane = E('div', { 'data-tab': 'log', 'data-tab-title': _('Log') }, [
 				E('div', { 'class': 'cbi-section' }, [
@@ -489,7 +503,7 @@ const ServiceView = view.extend({
 			]);
 
 			const panes = E('div', { 'class': 'du-panes' }, [
-				E('div', { 'data-tab': 'status', 'data-tab-title': _('Service status') }, [ mapNode ]),
+				E('div', { 'data-tab': 'status', 'data-tab-title': _('Service status') }, mapNode),
 				E('div', { 'data-tab': 'config', 'data-tab-title': _('Configuration') }, [
 					E('div', { 'class': 'cbi-section' }, [
 						E('p', { 'class': 'cbi-section-descr' },

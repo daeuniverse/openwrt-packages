@@ -248,6 +248,12 @@ as `openwrt.lan`. Create the administrator account on the first visit, then
 sign in to edit the configuration. Like LuCI, the page uses plain HTTP on the
 LAN; OpenWrt's default firewall keeps the port closed on WAN.
 
+LuCI's **Services → honk → Service status** tab has a **Web interface** row.
+**Open doona** opens a new tab through the router's IP address. If you open LuCI
+by hostname, the link uses the LAN IPv4 address from UCI instead.
+When honk listens on `127.0.0.1` or `::1`, the row shows the SSH tunnel command
+instead. The row is absent when no enabled native API with a UI is configured.
+
 The [shipped configuration](honk/files/config.dae) enables `password_auth` and
 `config_write` on the native API.
 It sets `data_dir` to `/etc/honk/data`, which the package's
