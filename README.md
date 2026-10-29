@@ -157,6 +157,14 @@ apk add 25.12.6-dae-2.1.1-aarch64_cortex-a76.apk
 apk add 25.12.6-honk-0.1.0_beta4-aarch64_cortex-a76.apk
 ```
 
+apk pins a package installed from a file to that file in `/etc/apk/world`.
+Once the [package feed](#package-feed) carries another version, every
+`apk add`, even of unrelated tools, fails with an error such as
+`honk-0.1.0_beta2-r1: breaks: world[honk><Q1…]`. To follow the feed instead,
+run `apk add honk@daeuniverse` (or `dae@daeuniverse`), adding the other
+packages to the same command if needed. To keep the local build, name its file
+again in the same `apk add` command.
+
 For signature checks, see [Verifying the packages](#verifying-the-packages).
 Both engines depend on `v2ray-geoip` and `v2ray-geosite` from the OpenWrt
 packages feed. They link `/usr/share/v2ray/geoip.dat` and `geosite.dat` into
