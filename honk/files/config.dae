@@ -10,9 +10,11 @@
 # interface of the IPv4 default route. Set lan_interface to your LAN device
 # list (comma separated) if it differs.
 #
-# Open http://127.0.0.1:9527/ locally, or forward the router's listener first:
-#
-#   ssh -L 9527:127.0.0.1:9527 root@<router>
+# Open http://<router LAN IP>:9527/ from the LAN, for example
+# http://192.168.1.1:9527/. Use the IP address: honk refuses host names such as
+# openwrt.lan. The page uses plain HTTP, like LuCI; the default firewall keeps
+# port 9527 closed on WAN. To keep it on the router only, listen on
+# 127.0.0.1:9527 and reach it with ssh -L 9527:127.0.0.1:9527 root@<router>.
 #
 # The first visit creates the administrator. Sign in to edit configuration.
 # For a reverse proxy, terminate TLS there; for token authentication, replace
@@ -66,7 +68,7 @@ experimental {
     }
     native_api {
         enabled: true
-        listen: '127.0.0.1:9527'
+        listen: '0.0.0.0:9527'
         password_auth: true
         config_write: true
         ui: 'embedded'
