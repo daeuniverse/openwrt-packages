@@ -344,7 +344,7 @@ the same name — ImmortalWrt ships its own `dae` and `luci-app-dae`:
 ```sh
 wget -O /etc/apk/keys/daeuniverse.pem https://openwrt.daeuniverse.org/public-key.pem
 . /etc/openwrt_release
-FEED=https://openwrt.daeuniverse.org/${DISTRIB_RELEASE%.*}
+FEED=https://openwrt.daeuniverse.org/$(echo "$DISTRIB_RELEASE" | cut -d. -f1-2)
 cat > /etc/apk/repositories.d/daeuniverse.list <<EOF
 @daeuniverse $FEED/packages/$DISTRIB_ARCH/packages.adb
 @daeuniverse $FEED/kmods/$DISTRIB_RELEASE/$DISTRIB_TARGET/packages.adb
