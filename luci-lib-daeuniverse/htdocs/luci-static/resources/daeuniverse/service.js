@@ -253,6 +253,11 @@ const STYLE = `
 /* The page buttons save the settings of the status tab only; the editor has its own. */
 body:has(.du-panes > [data-tab="status"]:not([data-tab-active="true"])) .cbi-page-actions { display: none; }
 .du-panes .right { margin: .5em 0; }
+/* Bootstrap's warning and error colors, else Argon's: its warning text color
+   (--warning itself is close to red) and --danger. A theme with neither
+   leaves the line in its text color. */
+.du-warn { color: color-mix(in srgb, var(--warn-color-high, var(--warning-heading-color)) 60%, currentColor); }
+.du-error { color: color-mix(in srgb, var(--error-color-high, var(--danger)) 60%, currentColor); }
 .du-log { max-height: 50vh; overflow: auto; white-space: pre-wrap; word-break: break-all; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 `;
 
@@ -300,6 +305,21 @@ function createEditor(text, onInput) {
 			}
 		}
 	};
+}
+
+/*
+ * The level a line states itself wins: honk's tracing (" WARN "), dae's
+ * logrus ("level=warning"). Other lines take the syslog priority they were
+ * logged with, as logread shows it (daemon.warn, daemon.err).
+ */
+function logLevelClass(entry) {
+	const m = /\s(ERROR|WARN|INFO|DEBUG|TRACE)\s|\blevel=(\w+)/.exec(entry.msg);
+	if (m) {
+		const level = (m[1] ?? m[2]).toLowerCase();
+		return /^(error|fatal|panic)$/.test(level) ? 'du-error' : /^warn/.test(level) ? 'du-warn' : '';
+	}
+	const severity = (entry.priority ?? 6) & 7;
+	return severity <= 3 ? 'du-error' : severity === 4 ? 'du-warn' : '';
 }
 
 const ServiceView = view.extend({
@@ -639,7 +659,8 @@ const ServiceView = view.extend({
 			const lines = entries
 				.filter(e => this.app.logIdent.test(e.msg))
 				.slice(-500)
-				.map((e, i) => [ i ? '\n' : '', E('span', { 'class': 'du-p' }, new Date(e.time).toLocaleString()), '  ' + e.msg ]);
+				.map((e, i) => [ i ? '\n' : '', E('span', { 'class': 'du-p' }, new Date(e.time).toLocaleString()),
+					'  ', E('span', { 'class': logLevelClass(e) }, e.msg) ]);
 			const log = this.logBox;
 			const atBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 4;
 			log.replaceChildren(...(lines.length ? lines.flat() : [ _('No log entries.') ]));
