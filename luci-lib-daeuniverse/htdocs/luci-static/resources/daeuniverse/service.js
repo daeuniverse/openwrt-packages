@@ -232,8 +232,11 @@ const STYLE = `
 .du-editor { position: relative; height: 60vh; min-height: 300px; border: 1px solid rgba(128,128,128,.4); border-radius: 4px; overflow: hidden; }
 .du-editor pre, .du-editor textarea {
 	position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; padding: 8px; border: 0; box-sizing: border-box;
-	font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; tab-size: 4; white-space: pre; overflow: auto;
+	font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; tab-size: 4; overflow: auto;
 	background: transparent; letter-spacing: normal; word-spacing: normal;
+	/* Both layers wrap the same way, and both reserve the textarea's scrollbar,
+	   so each line breaks at the same column and the caret stays on its text. */
+	white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; scrollbar-gutter: stable;
 }
 .du-editor pre { pointer-events: none; overflow: hidden; color: inherit; }
 /* Themes style code/span inside pre; anything that changes a glyph's box would
@@ -255,7 +258,7 @@ body:has(.du-panes > [data-tab="status"]:not([data-tab-active="true"])) .cbi-pag
 
 function createEditor(text, onInput) {
 	const pre = E('pre', { 'aria-hidden': 'true' });
-	const textarea = E('textarea', { 'spellcheck': 'false', 'wrap': 'off', 'autocomplete': 'off', 'autocapitalize': 'off' });
+	const textarea = E('textarea', { 'spellcheck': 'false', 'autocomplete': 'off', 'autocapitalize': 'off' });
 
 	const syncScroll = () => {
 		pre.scrollTop = textarea.scrollTop;
@@ -267,6 +270,9 @@ function createEditor(text, onInput) {
 	};
 
 	textarea.value = text;
+	// A theme may force the textarea's font size (Bootstrap uses 16px on phones
+	// so that focusing it does not zoom); the highlight has to follow it.
+	new ResizeObserver(() => { pre.style.fontSize = getComputedStyle(textarea).fontSize; }).observe(textarea);
 	textarea.addEventListener('input', () => { paint(); onInput(); });
 	textarea.addEventListener('scroll', syncScroll);
 	// The text itself is transparent, so give the caret the color of the theme.
