@@ -12,9 +12,9 @@
 # nightly toolchain pinned in crates/honk-ebpf/rust-toolchain.toml, compiles
 # honk-core with the crate's own pinned stable toolchain, and uses the OpenWrt
 # cross gcc/g++ of the SDK (TARGET_CROSS) for BoringSSL, SQLite and the final
-# link. HONK_VERSION is the package version (0.1.0_beta1, apk spells the beta
+# link. HONK_VERSION is the package version (0.1.0_beta4, apk spells the beta
 # pre-release with "_beta") and HONK_GIT_TAG the upstream tag the sources come
-# from (v0.1.0-beta.1), which is the version honk's build script embeds.
+# from (v0.1.0-beta.4), which is the version honk's build script embeds.
 #
 # The binary is built with the full feature set: the crate defaults
 # (clash-api, mimalloc, rprx) plus ebpf and native-ui. native-ui embeds the
@@ -36,12 +36,12 @@ PKG_DIR:=$(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=honk
-PKG_VERSION:=$(if $(HONK_VERSION),$(HONK_VERSION),0.1.0_beta1)
+PKG_VERSION:=$(if $(HONK_VERSION),$(HONK_VERSION),0.1.0_beta4)
 PKG_RELEASE:=3
 
 # Upstream release the sources are checked out from. honk's build script derives
 # the version it embeds from the tag in GITHUB_REF, so build.sh exports it.
-HONK_GIT_TAG:=$(if $(HONK_GIT_TAG),$(HONK_GIT_TAG),v0.1.0-beta.1)
+HONK_GIT_TAG:=$(if $(HONK_GIT_TAG),$(HONK_GIT_TAG),v0.1.0-beta.4)
 
 PKG_LICENSE:=GPL-3.0-only
 PKG_LICENSE_FILES:=LICENSE

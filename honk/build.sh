@@ -3,9 +3,9 @@
 # package Makefile, so every input arrives as an environment variable:
 #
 #   HONK_SRC            build directory holding the checked out sources
-#   HONK_VERSION        package version (0.1.0_beta1)
+#   HONK_VERSION        package version (0.1.0_beta4)
 #   HONK_GIT_TAG        upstream release tag the sources come from
-#                       (v0.1.0-beta.1); honk's build script embeds this
+#                       (v0.1.0-beta.4); honk's build script embeds this
 #   HONK_ARCH_PACKAGES  arch_packages of the target, e.g. aarch64_cortex-a76
 #   OPENWRT_CC          OpenWrt cross gcc (TARGET_CROSS + gcc)
 #   OPENWRT_CXX         OpenWrt cross g++
