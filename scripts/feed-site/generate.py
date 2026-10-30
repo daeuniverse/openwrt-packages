@@ -413,6 +413,11 @@ def texts(lang, t):
 	return T
 
 
+# The release series (25.12) from /etc/openwrt_release; cut keeps it whether
+# DISTRIB_RELEASE reads 25.12.6 or only 25.12.
+SERIES = '$(echo "$DISTRIB_RELEASE" | cut -d. -f1-2)'
+
+
 def heading(key, title):
 	return f'<h2 id="{key}">{title}<a class="anchor" href="#{key}" aria-hidden="true">#</a></h2>'
 
@@ -422,7 +427,7 @@ def guide(lang, T, builds, base):
 	# to one release (25.12.6) and target
 	repo = lambda kmods: (
 		'. /etc/openwrt_release\n'
-		f'FEED={base}/${{DISTRIB_RELEASE%.*}}\n'
+		f'FEED={base}/{SERIES}\n'
 		'cat > /etc/apk/repositories.d/daeuniverse.list <<EOF\n'
 		'@daeuniverse $FEED/packages/$DISTRIB_ARCH/packages.adb\n'
 		+ ('@daeuniverse $FEED/kmods/$DISTRIB_RELEASE/$DISTRIB_TARGET/packages.adb\n' if kmods else '')
@@ -528,7 +533,7 @@ def mirror(T, rsync):
 
 {heading("use", T["use"])}
 <p>{T["use_note"]}</p>
-{code("FEED=https://mirror.example.org/openwrt-daeuniverse/${DISTRIB_RELEASE%.*}", T)}
+{code(f"FEED=https://mirror.example.org/openwrt-daeuniverse/{SERIES}", T)}
 <p>{T["use_key"]}</p>
 '''
 
