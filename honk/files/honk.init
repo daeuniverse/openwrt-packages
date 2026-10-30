@@ -59,6 +59,20 @@ start_service() {
 	# left mounted on stop because other tools may share it.
 	grep -qs ' /sys/fs/bpf bpf ' /proc/mounts || mount -t bpf bpf /sys/fs/bpf
 
+	# procd runs each instance in /sys/fs/cgroup/services/<service>/<instance>
+	# but enables no controller there, so honk finds no memory.current and its
+	# telemetry has no cgroup reading. Enable the memory controller down to the
+	# service cgroup before procd moves the instance in (honk checks for the
+	# cgroup files once, at startup). The cgroup is kept on stop.
+	local cgroup
+	if grep -qsw memory /sys/fs/cgroup/cgroup.controllers; then
+		mkdir -p "/sys/fs/cgroup/services/$CONF"
+		for cgroup in /sys/fs/cgroup /sys/fs/cgroup/services "/sys/fs/cgroup/services/$CONF"; do
+			echo +memory > "$cgroup/cgroup.subtree_control" ||
+				logger -t honk "cannot enable the memory controller in $cgroup"
+		done
+	fi
+
 	procd_open_instance "$CONF"
 	procd_set_param command "$PROG" --config "$config_file"
 	# honk budgets its flow admission from RLIMIT_NOFILE (it raises the soft
