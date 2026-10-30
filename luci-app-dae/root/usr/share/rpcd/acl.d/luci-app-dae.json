@@ -4,10 +4,13 @@
 		"read": {
 			"file": {
 				"/etc/dae": [ "list" ],
-				"/etc/dae/*": [ "list", "read" ]
+				"/etc/dae/*": [ "list", "read" ],
+				"/usr/libexec/daeuniverse-pkg installed *": [ "exec" ],
+				"/usr/libexec/daeuniverse-pkg check *": [ "exec" ],
+				"/usr/libexec/daeuniverse-pkg status": [ "exec" ]
 			},
 			"ubus": {
-				"file": [ "list", "read" ],
+				"file": [ "list", "read", "exec" ],
 				"log": [ "read" ],
 				"service": [ "list" ]
 			},
@@ -16,7 +19,7 @@
 		"write": {
 			"file": {
 				"/etc/dae/*": [ "write" ],
-				"/usr/bin/apk": [ "exec" ],
+				"/usr/libexec/daeuniverse-pkg upgrade *": [ "exec" ],
 				"/usr/bin/dae validate -c *": [ "exec" ]
 			},
 			"ubus": {

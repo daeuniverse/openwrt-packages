@@ -6,6 +6,7 @@
 'require ui';
 'require uci';
 'require rpc';
+'require request';
 'require poll';
 
 /*
@@ -309,7 +310,7 @@ const ServiceView = view.extend({
 			return Promise.all([ entry, collectFiles(entry, readFromDisk).catch(err => {
 				ui.addNotification(null, E('p', _('Unable to read %s: %s').format(entry, err.message)), 'error');
 				return [];
-			}), this.queryPackages(true).catch(error => ({ error })) ]);
+			}), this.queryPackages().catch(error => ({ error })) ]);
 		});
 	},
 
@@ -417,31 +418,44 @@ const ServiceView = view.extend({
 
 	/* Packages */
 
-	async runApk(args) {
-		const result = await fs.exec('/usr/bin/apk', [ '--interactive=no', '--progress=no', ...args ]);
+	async packageCommand(args) {
+		const command = '/usr/libexec/daeuniverse-pkg';
+		// rpc.declare has no per-call timeout in LuCI 25.12. Only the index
+		// refresh needs longer than the default; the helper bounds it to 25s.
+		const result = args[0] === 'check' ? await new Promise((resolve, reject) => {
+			const call = { object: 'file', method: 'exec', raise: true, resolve, reject };
+			request.post(rpc.getBaseURL(), {
+				jsonrpc: '2.0', id: 'daeuniverse-check', method: 'call',
+				params: [ rpc.getSessionID(), 'file', 'exec', { command, params: args } ]
+			}, { timeout: 28000, nobatch: true, credentials: true })
+				.then(response => rpc.parseCallReply(call, response), reject);
+		}) : await fs.exec(command, args);
 		if (result.code !== 0) {
 			const error = new Error(_('apk exited with code %s.').format(result.code));
 			error.output = (result.stdout || '') + (result.stderr || '');
+			error.exitCode = result.code;
 			throw error;
 		}
-		return result;
+		return JSON.parse(result.stdout);
 	},
 
-	async queryPackages(installed, packages) {
-		const names = packages || [ this.app.name, 'luci-app-' + this.app.name, 'luci-lib-daeuniverse',
-			'v2ray-geoip', 'v2ray-geosite' ];
-		const result = await this.runApk([ 'query', '--network=no',
-			...(installed ? [ '--installed', '--from', 'installed' ] : [ '--upgradable' ]),
-			'--fields', 'name,version', '--format', 'json', ...names ]);
-		return JSON.parse(result.stdout).filter(pkg => names.includes(pkg.name));
+	queryPackages(app = this.app.name) {
+		return this.packageCommand([ 'installed', app ]);
+	},
+
+	packageHint(names) {
+		return E('p', {}, _('To use this feed\'s version, run %s; other packages can be added to the same command.')
+			.format('apk add ' + names.map(name => name + '@daeuniverse').join(' ')));
 	},
 
 	packageError(error) {
 		const output = error.output ?? error.message;
 		const nodes = [ E('p', {}, error.message), E('pre', { 'class': 'du-log' }, output) ];
-		if (new RegExp('breaks: world\\[' + this.app.name + '(?=[\\]@<>=~])').test(output))
-			nodes.push(E('p', {}, _('To follow the feed instead, run %s, adding the other packages to the same command if needed.')
-				.format('apk add ' + this.app.name + '@daeuniverse')));
+		const pinned = [ 'dae', 'honk', 'luci-app-dae', 'luci-app-honk', 'luci-lib-daeuniverse',
+			'v2ray-geoip', 'v2ray-geosite' ].filter(name =>
+				new RegExp('breaks: world\\[' + name + '(?=[\\]@<>=~])').test(output));
+		if (pinned.length)
+			nodes.push(this.packageHint(pinned));
 		return nodes;
 	},
 
@@ -449,13 +463,17 @@ const ServiceView = view.extend({
 		this.checkButton.disabled = true;
 		this.packageStatus.replaceChildren(_('Checking for updates…'));
 		try {
-			await this.runApk([ 'update' ]);
-			const installed = await this.queryPackages(true);
+			const result = await this.packageCommand([ 'check', this.app.name ]);
+			const installed = await this.queryPackages();
 			if (!installed.some(pkg => pkg.name === this.app.name))
 				throw new Error(_('Not installed'));
-			const updates = await this.queryPackages(false, installed.map(pkg => pkg.name));
+			const updates = result.packages.filter(pkg => installed.some(current => current.name === pkg.name));
+			const warning = result.warning ? [
+				E('p', {}, _('Package index update failed; using available indexes.')),
+				E('pre', { 'class': 'du-log' }, result.warning)
+			] : [];
 			if (!updates.length) {
-				this.packageStatus.replaceChildren(_('Up to date'));
+				this.packageStatus.replaceChildren(...warning, E('p', {}, _('Up to date')));
 				return;
 			}
 			this.packageStatus.replaceChildren();
@@ -467,6 +485,7 @@ const ServiceView = view.extend({
 				'click': () => this.handleUpgrade(boxes.filter(box => box.checked).map(box => box.value))
 			}, _('Upgrade'));
 			ui.showModal(_('Upgrade'), [
+				...warning,
 				E('p', {}, _('Select the packages to upgrade:')),
 				E('ul', {}, updates.map((pkg, i) => E('li', {}, E('label', {}, [
 					boxes[i], ' ', pkg.name + ': ' + current[pkg.name] + ' → ' + pkg.version
@@ -487,23 +506,115 @@ const ServiceView = view.extend({
 		}
 	},
 
+	showPackageJob(status, message) {
+		this.packageLog = E('pre', { 'class': 'du-log', 'aria-live': 'polite' }, status.log || '');
+		this.packageProgress = E('p', { 'class': 'spinning' }, message || _('Upgrading…'));
+		ui.showModal(_('Upgrade'), [ this.packageProgress, this.packageLog ]);
+	},
+
 	async handleUpgrade(packages) {
-		ui.showModal(_('Upgrade'), [ E('p', { 'class': 'spinning' }, _('Upgrading…')) ]);
+		this.checkButton.disabled = true;
+		this.packageLaunchError = null;
+		this.showPackageJob({});
+		let previous;
 		try {
-			const result = await this.runApk([ 'upgrade', ...packages ]);
-			ui.showModal(_('Upgrade'), [
-				E('pre', { 'class': 'du-log' }, (result.stdout || '') + (result.stderr || '')),
-				E('p', {}, _('Upgrade complete.')),
-				E('div', { 'class': 'right' }, E('button', {
-					'class': 'btn', 'click': () => window.location.reload()
-				}, _('Close')))
-			]);
+			previous = await this.packageCommand([ 'status' ]);
 		}
 		catch (error) {
-			ui.showModal(_('Upgrade failed'), [ ...this.packageError(error),
-				E('div', { 'class': 'right' }, E('button', { 'class': 'btn', 'click': ui.hideModal }, _('Close')))
-			]);
+			this.finishPackageJob(this.packageError(error), false);
+			return;
 		}
+		this.packagePreviousJob = previous.id;
+		try {
+			const status = previous.running ? previous :
+				await this.packageCommand([ 'upgrade', this.app.name, ...packages ]);
+			this.showPackageJob(status, previous.running || status.already_running ? _('An upgrade is already running.') : null);
+		}
+		catch (error) {
+			if (error.exitCode != null || error.name === 'PermissionError') {
+				this.finishPackageJob(this.packageError(error), false);
+				return;
+			}
+			// A reload of rpcd can lose even the launch reply. Observe the job;
+			// never submit a second transaction to guess whether it started.
+			this.packageLaunchError = error;
+		}
+		this.packagePolling = true;
+		this.packagePollFailure = null;
+	},
+
+	async pollPackageJob() {
+		if (!this.packagePolling)
+			return;
+		try {
+			const status = await this.packageCommand([ 'status' ]);
+			if (this.packageLaunchError && status.id === this.packagePreviousJob)
+				throw this.packageLaunchError;
+			if (status.running) {
+				this.checkButton.disabled = true;
+				if (!this.packageProgress)
+					this.showPackageJob(status, _('An upgrade is already running.'));
+				else if (this.packagePollFailure)
+					this.packageProgress.replaceChildren(_('Upgrading…'));
+				this.packageLog.textContent = status.log;
+				this.packageLog.scrollTop = this.packageLog.scrollHeight;
+			}
+			else if (status.code != null && this.packageProgress) {
+				if (status.code !== 0) {
+					const error = new Error(_('apk exited with code %s.').format(status.code));
+					error.output = status.log;
+					this.finishPackageJob(this.packageError(error), false);
+				}
+				else {
+					// Query again after postinst (and rpcd) have finished. A pinned
+					// world entry can make apk return zero without changing anything.
+					const installed = (await Promise.all([ this.queryPackages('dae'), this.queryPackages('honk') ])).flat();
+					const current = Object.fromEntries(installed.map(pkg => [ pkg.name, pkg.version ]));
+					const before = Object.fromEntries(status.before.map(pkg => [ pkg.name, pkg.version ]));
+					const unchanged = status.packages.filter(name => !current[name] || current[name] === before[name]);
+					this.finishPackageJob([
+						E('pre', { 'class': 'du-log' }, status.log),
+						...(unchanged.length ? [
+							E('p', {}, _('These packages were not upgraded: %s').format(unchanged.join(', '))),
+							this.packageHint(unchanged)
+						] : [ E('p', {}, _('Upgrade complete.')) ])
+					], true);
+				}
+			}
+			else {
+				if (this.packageLaunchError)
+					throw this.packageLaunchError;
+				this.packagePolling = false;
+				this.checkButton.disabled = false;
+			}
+			this.packagePollFailure = null;
+			this.packageLaunchError = null;
+		}
+		catch (error) {
+			// rpcd restarts while LuCI packages are installed. Allow two minutes
+			// of failed polls, independently of how long the download takes.
+			this.packagePollFailure ??= Date.now();
+			if (Date.now() - this.packagePollFailure < 120000) {
+				if (this.packageProgress)
+					this.packageProgress.replaceChildren(_('Waiting for the package manager to reconnect…'));
+				return;
+			}
+			this.finishPackageJob([
+				E('p', {}, _('Unable to read upgrade status. The job may still be running; reload to reconnect.')),
+				...this.packageError(error)
+			], false);
+		}
+	},
+
+	finishPackageJob(nodes, reload) {
+		this.packagePolling = false;
+		this.checkButton.disabled = false;
+		this.packageProgress = null;
+		ui.showModal(_('Upgrade'), [ ...nodes,
+			E('div', { 'class': 'right' }, E('button', {
+				'class': 'btn', 'click': reload ? () => window.location.reload() : ui.hideModal
+			}, _('Close')))
+		]);
 	},
 
 	/* Status and log */
@@ -641,6 +752,9 @@ const ServiceView = view.extend({
 			const page = E('div', {}, [ E('h2', { 'name': 'content' }, title), panes ]);
 			ui.tabs.initTabGroup(panes.childNodes);
 			this.updateStatus();
+			this.packagePolling = true;
+			this.checkButton.disabled = true;
+			poll.add(() => this.pollPackageJob(), 2);
 			return page;
 		});
 	}

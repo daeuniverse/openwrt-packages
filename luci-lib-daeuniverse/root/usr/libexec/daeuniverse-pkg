@@ -1,0 +1,194 @@
+#!/bin/sh
+
+# Only this helper may invoke apk on behalf of the LuCI applications.
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+umask 077
+
+. /usr/share/libubox/jshn.sh
+
+LOCK=/tmp/daeuniverse-pkg.lock
+STATE=/tmp/daeuniverse-pkg.json
+LOG=/tmp/daeuniverse-pkg.log
+RC=/tmp/daeuniverse-pkg.rc
+
+fail() {
+	printf '%s\n' "$*" >&2
+	exit 1
+}
+
+valid_app() {
+	case "$1" in
+		dae|honk) return 0 ;;
+		*) return 1 ;;
+	esac
+}
+
+valid_package() {
+	case "$1" in
+		dae|honk|luci-app-dae|luci-app-honk|luci-lib-daeuniverse|v2ray-geoip|v2ray-geosite)
+			return 0 ;;
+		*) return 1 ;;
+	esac
+}
+
+load_json() {
+	# json_load() itself does not propagate jshn parse failures.
+	json_script=$(jshn -r "$1") || return 1
+	eval "$json_script"
+}
+
+query_installed() {
+	/usr/bin/apk --interactive=no --progress=no query --network=no \
+		--installed --from installed --fields name,version --format json "$@"
+}
+
+check_updates() {
+	# A bad repository must not hide upgrades from the indexes that did refresh.
+	# OpenWrt 25.12 configures rpcd's execution timeout to 30 seconds.
+	warning=
+	update_output=$(/usr/bin/timeout --signal=TERM --kill-after=5 20 \
+		/usr/bin/apk --interactive=no --progress=no update 2>&1)
+	update_code=$?
+	if [ "$update_code" -ne 0 ]; then
+		warning="apk update exited with code $update_code."
+		[ -z "$update_output" ] || warning="$warning
+$update_output"
+	fi
+	packages=$(/usr/bin/apk --interactive=no --progress=no query --network=no \
+		--upgradable --fields name,version --format json "$@") || return $?
+	load_json "{\"packages\":$packages}" || fail 'Invalid apk query response.'
+	json_add_string warning "$warning"
+	json_dump
+}
+
+write_result() {
+	result_file=$(mktemp /tmp/daeuniverse-pkg.XXXXXX) || return 1
+	if printf '%s\n' "$1" > "$result_file" && mv -f "$result_file" "$RC"; then
+		return 0
+	fi
+	rm -f "$result_file"
+	return 1
+}
+
+status() {
+	# The inherited descriptor covers both the worker shell and apk. Unlike a
+	# saved PID, its lock cannot survive a dead worker or refer to a reused PID.
+	exec 8>>"$LOCK" || fail 'Unable to open the package lock.'
+	running=1
+	flock -n 8 && running=0
+
+	if [ -s "$STATE" ]; then
+		state_data=$(cat "$STATE") || fail 'Unable to read package state.'
+		load_json "$state_data" || fail 'Invalid package state.'
+		if [ "$running" -eq 0 ] && [ ! -f "$RC" ]; then
+			printf '%s\n' 'Upgrade worker exited without reporting its status.' >> "$LOG"
+			write_result 1 || fail 'Unable to record the interrupted upgrade.'
+		fi
+	else
+		json_init
+		json_add_null id
+		json_add_string app ''
+		json_add_array packages
+		json_close_array
+		json_add_array before
+		json_close_array
+	fi
+
+	json_add_boolean running "$running"
+	json_add_boolean already_running "${1:-0}"
+	if [ "$running" -eq 0 ] && [ -f "$RC" ] && [ -s "$STATE" ]; then
+		IFS= read -r result < "$RC" || result=1
+		case "$result" in
+			''|*[!0-9]*) result=1 ;;
+		esac
+		json_add_int code "$result"
+	else
+		json_add_null code
+	fi
+	log=
+	[ ! -f "$LOG" ] || log=$(tail -c 16384 "$LOG" 2>/dev/null)
+	json_add_string log "$log"
+	# Keep a successful probe locked until its state snapshot is assembled.
+	exec 8>&-
+	json_dump
+}
+
+upgrade() {
+	app=$1
+	shift
+	exec 9>>"$LOCK" || fail 'Unable to open the package lock.'
+	if ! flock -n 9; then
+		exec 9>&-
+		status 1
+		return
+	fi
+
+	before=$(query_installed "$@") || fail 'Unable to query installed packages.'
+	load_json "{\"before\":$before}" || fail 'Invalid apk query response.'
+	json_add_string app "$app"
+	json_add_string id "$(date +%s)-$$"
+	json_add_array packages
+	for package in "$@"; do
+		json_add_string '' "$package"
+	done
+	json_close_array
+	state_file=$(mktemp /tmp/daeuniverse-pkg.XXXXXX) || fail 'Unable to create package state.'
+	if ! json_dump > "$state_file" || ! mv -f "$state_file" "$STATE"; then
+		rm -f "$state_file"
+		fail 'Unable to save package state.'
+	fi
+	log_file=$(mktemp /tmp/daeuniverse-pkg.XXXXXX) || fail 'Unable to create the upgrade log.'
+	if ! mv -f "$log_file" "$LOG"; then
+		rm -f "$log_file"
+		fail 'Unable to reset the upgrade log.'
+	fi
+	rm -f "$RC" || fail 'Unable to reset the upgrade result.'
+
+	# Redirect all rpcd pipes before forking apk. Descriptor 9 stays inherited,
+	# so another tab cannot start a transaction while this worker is alive.
+	(
+		trap '' HUP
+		/usr/bin/apk --interactive=no --progress=no upgrade "$@"
+		write_result "$?"
+	) </dev/null >>"$LOG" 2>&1 &
+	exec 9>&-
+	status 0
+}
+
+[ "$#" -gt 0 ] || fail 'A command is required.'
+command=$1
+shift
+case "$command" in
+	installed|check)
+		[ "$#" -eq 1 ] || fail 'Exactly one application is required.'
+		valid_app "$1" || fail 'Invalid application.'
+		app=$1
+		set -- "$app" "luci-app-$app" luci-lib-daeuniverse v2ray-geoip v2ray-geosite
+		if [ "$command" = installed ]; then
+			query_installed "$@"
+		else
+			check_updates "$@"
+		fi
+		;;
+	upgrade)
+		[ "$#" -ge 2 ] && [ "$#" -le 8 ] || fail 'An application and one to seven packages are required.'
+		valid_app "$1" || fail 'Invalid application.'
+		app=$1
+		shift
+		seen=' '
+		for package in "$@"; do
+			valid_package "$package" || fail 'Invalid package.'
+			case "$seen" in
+				*" $package "*) fail 'Duplicate package.' ;;
+			esac
+			seen="$seen$package "
+		done
+		upgrade "$app" "$@"
+		;;
+	status)
+		[ "$#" -eq 0 ] || fail 'Status takes no arguments.'
+		status 0
+		;;
+	*) fail 'Invalid command.' ;;
+esac
