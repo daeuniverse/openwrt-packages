@@ -469,19 +469,22 @@ const ServiceView = view.extend({
 		return this.packageCommand([ 'installed', app ]);
 	},
 
-	packageHint(names) {
-		return E('p', {}, _('To use this feed\'s version, run %s; other packages can be added to the same command.')
+	/* `tag` is 'div' for text in the version field: LuCI's widgets render a
+	   field's text in a div, and themes style a p in a section as section
+	   prose, which Argon indents away from the value column. */
+	packageHint(names, tag = 'p') {
+		return E(tag, {}, _('To use this feed\'s version, run %s; other packages can be added to the same command.')
 			.format('apk add ' + names.map(name => name + '@daeuniverse').join(' ')));
 	},
 
-	packageError(error) {
+	packageError(error, tag = 'p') {
 		const output = error.output ?? error.message;
-		const nodes = [ E('p', {}, error.message), E('pre', { 'class': 'du-log' }, output) ];
+		const nodes = [ E(tag, {}, error.message), E('pre', { 'class': 'du-log' }, output) ];
 		const pinned = [ 'dae', 'honk', 'luci-app-dae', 'luci-app-honk', 'luci-lib-daeuniverse',
 			'v2ray-geoip', 'v2ray-geosite' ].filter(name =>
 				new RegExp('breaks: world\\[' + name + '(?=[\\]@<>=~])').test(output));
 		if (pinned.length)
-			nodes.push(this.packageHint(pinned));
+			nodes.push(this.packageHint(pinned, tag));
 		return nodes;
 	},
 
@@ -494,12 +497,12 @@ const ServiceView = view.extend({
 			if (!installed.some(pkg => pkg.name === this.app.name))
 				throw new Error(_('Not installed'));
 			const updates = result.packages.filter(pkg => installed.some(current => current.name === pkg.name));
-			const warning = result.warning ? [
-				E('p', {}, _('Package index update failed; using available indexes.')),
+			const warning = tag => result.warning ? [
+				E(tag, {}, _('Package index update failed; using available indexes.')),
 				E('pre', { 'class': 'du-log' }, result.warning)
 			] : [];
 			if (!updates.length) {
-				this.packageStatus.replaceChildren(...warning, E('p', {}, _('Up to date')));
+				this.packageStatus.replaceChildren(...warning('div'), E('div', {}, _('Up to date')));
 				return;
 			}
 			this.packageStatus.replaceChildren();
@@ -511,7 +514,7 @@ const ServiceView = view.extend({
 				'click': () => this.handleUpgrade(boxes.filter(box => box.checked).map(box => box.value))
 			}, _('Upgrade'));
 			ui.showModal(_('Upgrade'), [
-				...warning,
+				...warning('p'),
 				E('p', {}, _('Select the packages to upgrade:')),
 				E('ul', {}, updates.map((pkg, i) => E('li', {}, E('label', {}, [
 					boxes[i], ' ', pkg.name + ': ' + current[pkg.name] + ' → ' + pkg.version
@@ -525,7 +528,7 @@ const ServiceView = view.extend({
 			]);
 		}
 		catch (error) {
-			this.packageStatus.replaceChildren(...this.packageError(error));
+			this.packageStatus.replaceChildren(...this.packageError(error, 'div'));
 		}
 		finally {
 			this.checkButton.disabled = false;
