@@ -108,13 +108,13 @@ name: Build vmlinux (BTF)
 # The userspace packages are pinned to upstream releases and therefore do not
 # depend on the kernel version (the versions live in the prepare job):
 #   dae  - tag v2.1.1,            package version 2.1.1
-#   honk - tag v0.1.0-beta.1,     package version 0.1.0_beta1
+#   honk - tag v0.1.0-beta.4,     package version 0.1.0_beta4
 # apk spells a pre-release with "_beta" ("~" is reserved for a commit hash), so
 # the honk tag cannot be used verbatim as the package version. The package
 # version is the version the binaries report as well: it is passed to the
 # package Makefiles as DAE_VERSION / HONK_VERSION, dae's own make receives it as
 # VERSION, and honk derives what it embeds from GITHUB_REF, so build.sh exports
-# a "refs/tags/v0.1.0-beta.1" ref for it.
+# a "refs/tags/v0.1.0-beta.4" ref for it.
 #
 # All targets sharing the same kernel version are published together in one
 # GitHub Release with the gh CLI, tagged:
@@ -264,13 +264,13 @@ jobs:
 
           # The userspace packages are pinned to upstream releases. The package
           # version is what the binaries report as well, so it is passed to the
-          # package Makefiles. honk is tagged v0.1.0-beta.1, but apk spells a
+          # package Makefiles. honk is tagged v0.1.0-beta.4, but apk spells a
           # beta pre-release with "_beta" ("~" means a commit hash), hence
-          # 0.1.0_beta1 while the sources come from the tag itself.
+          # 0.1.0_beta4 while the sources come from the tag itself.
           DAE_VERSION="2.1.1"
           DAE_GIT_TAG="v2.1.1"
-          HONK_VERSION="0.1.0_beta1"
-          HONK_GIT_TAG="v0.1.0-beta.1"
+          HONK_VERSION="0.1.0_beta4"
+          HONK_GIT_TAG="v0.1.0-beta.4"
           echo "Userspace versions: dae ${DAE_VERSION} (${DAE_GIT_TAG}), honk ${HONK_VERSION} (${HONK_GIT_TAG})"
 
           # One UTC date for every release of this run, so all kernel versions
@@ -1499,7 +1499,7 @@ jobs:
           not depend on the kernel version:
 
           - <openwrt_version>-dae-2.1.1-<openwrt_arch>.apk
-          - <openwrt_version>-honk-0.1.0_beta1-<openwrt_arch>.apk
+          - <openwrt_version>-honk-0.1.0_beta4-<openwrt_arch>.apk
 
           Both depend on vmlinux-btf. On a kernel with its own BTF (ImmortalWrt)
           vmlinux-btf-builtin-<version>.apk, attached as well, satisfies that

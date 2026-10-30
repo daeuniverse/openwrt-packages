@@ -62,7 +62,7 @@ or used against a manually unpacked SDK:
 
 ```sh
 git clone --recurse-submodules --branch v2.1.1 https://github.com/daeuniverse/dae dae/src
-git clone --branch v0.1.0-beta.1 https://github.com/daeuniverse/honk honk/src
+git clone --branch v0.1.0-beta.4 https://github.com/daeuniverse/honk honk/src
 ```
 
 `./scripts/feeds install dae` (or `honk`) also installs `vmlinux-btf`, which
@@ -80,7 +80,7 @@ out.
 | `<openwrt_version>-vmlinux-btf-<target>-<subtarget>-<kernel_version>.apk` | OpenWrt package `vmlinux-btf` (version = kernel version), installing `/usr/lib/debug/boot/vmlinux`, the `vmlinux-<kernel release>` symlink and `/usr/share/vmlinux-btf/version`; it only installs on the exact kernel it was built for | the same blob, packaged with [`vmlinux-btf/Makefile`](vmlinux-btf/Makefile) |
 | `vmlinux-btf-builtin-<version>.apk` | OpenWrt package `vmlinux-btf-builtin`, empty and architecture independent: provides `vmlinux-btf` on a kernel with its own BTF (ImmortalWrt), where `vmlinux-btf` does not install | [`vmlinux-btf-builtin/Makefile`](vmlinux-btf-builtin/Makefile) |
 | `<openwrt_version>-dae-2.1.1-<openwrt_arch>.apk` | OpenWrt package `dae` 2.1.1, installing `/usr/bin/dae`, a procd init script and `/etc/config/dae` | [daeuniverse/dae](https://github.com/daeuniverse/dae) tag `v2.1.1`, built by [`dae/Makefile`](dae/Makefile) |
-| `<openwrt_version>-honk-0.1.0_beta1-<openwrt_arch>.apk` | OpenWrt package `honk` 0.1.0_beta1, installing `/usr/bin/honk-core` (full feature set with the embedded doona UI), a procd init script and `/etc/config/honk` | [daeuniverse/honk](https://github.com/daeuniverse/honk) tag `v0.1.0-beta.1`, built by [`honk/Makefile`](honk/Makefile) |
+| `<openwrt_version>-honk-0.1.0_beta4-<openwrt_arch>.apk` | OpenWrt package `honk` 0.1.0_beta4, installing `/usr/bin/honk-core` (full feature set with the embedded doona UI), a procd init script and `/etc/config/honk` | [daeuniverse/honk](https://github.com/daeuniverse/honk) tag `v0.1.0-beta.4`, built by [`honk/Makefile`](honk/Makefile) |
 | `public-key.pem` | the public key that verifies the signature of every `.apk` asset of the release | [`keys/public-key.pem`](keys/public-key.pem), see [Verifying the packages](#verifying-the-packages) |
 
 Both userspace packages are OpenWrt services: they install
@@ -94,18 +94,18 @@ The `dae` and
 `honk` packages are built once per OpenWrt architecture and are pinned to an
 upstream release, so their name carries that version and not the kernel version;
 `x86_64` gets `25.12.6-dae-2.1.1-x86_64.apk` while `aarch64_cortex-a76` gets
-`25.12.6-honk-0.1.0_beta1-aarch64_cortex-a76.apk`. OpenWrt 25.x produces
+`25.12.6-honk-0.1.0_beta4-aarch64_cortex-a76.apk`. OpenWrt 25.x produces
 `.apk` packages. The workflow signs those packages and publishes only the
 signed `.apk` files. Older `.ipk` output is not supported and fails the build.
 
 The version also flows into the binaries: it is passed to the package Makefiles
 as `DAE_VERSION` / `HONK_VERSION`, dae's own make receives it as `VERSION`, and
 honk derives the string it embeds from `GITHUB_REF`, so a
-`refs/tags/v0.1.0-beta.1` ref is exported for its build (the build script then
+`refs/tags/v0.1.0-beta.4` ref is exported for its build (the build script then
 asserts that the tag, not the git fallback, is what ended up in the binary).
-`0.1.0-beta.1` is not a valid apk version — `~` there introduces a commit hash
-— so the package spells the beta pre-release as `0.1.0_beta1`, while the sources
-and the embedded version come from the upstream tag `v0.1.0-beta.1` itself.
+`0.1.0-beta.4` is not a valid apk version — `~` there introduces a commit hash
+— so the package spells the beta pre-release as `0.1.0_beta4`, while the sources
+and the embedded version come from the upstream tag `v0.1.0-beta.4` itself.
 
 ## Usage
 
@@ -167,7 +167,7 @@ The `dae` and `honk` assets are OpenWrt packages as well:
 
 ```sh
 apk add 25.12.6-dae-2.1.1-aarch64_cortex-a76.apk
-apk add 25.12.6-honk-0.1.0_beta1-aarch64_cortex-a76.apk
+apk add 25.12.6-honk-0.1.0_beta4-aarch64_cortex-a76.apk
 ```
 
 The packages are signed after the SDK build, so `apk` accepts them once
@@ -420,7 +420,7 @@ flowchart LR
   P["prepare<br/>resolve targets, SDKs, kernel version<br/>and arch_packages"]
   K["build (one per target)<br/>SDK kernel headers + SDK toolchain<br/>stubs → DWARF → pahole → BTF blob<br/>+ vmlinux-btf package"]
   D["dae 2.1.1 (one per OpenWrt arch)<br/>Go, clang for the eBPF objects"]
-  H["honk 0.1.0_beta1 (one per OpenWrt arch)<br/>Rust, full features + embedded doona UI,<br/>eBPF object + BoringSSL via the SDK gcc/g++"]
+  H["honk 0.1.0_beta4 (one per OpenWrt arch)<br/>Rust, full features + embedded doona UI,<br/>eBPF object + BoringSSL via the SDK gcc/g++"]
   L["luci<br/>the LuCI apps and vmlinux-btf-builtin,<br/>built once (all architectures)"]
   R["release<br/>group by kernel version,<br/>one Release per version"]
   F["feed<br/>signed apk repositories<br/>+ landing page on the mirror"]
@@ -502,7 +502,7 @@ newer). It then asserts that the result really is a binary for the target and
 that it needs no shared library at all.
 
 **honk** — [`honk/Makefile`](honk/Makefile) and [`honk/build.sh`](honk/build.sh)
-do the same for honk, whose sources are checked out from the `v0.1.0-beta.1`
+do the same for honk, whose sources are checked out from the `v0.1.0-beta.4`
 tag: the job installs the two toolchains pinned in honk's `rust-toolchain.toml`
 files (stable for honk-core, a nightly with `rust-src` for the eBPF object) plus
 the pinned `bpf-linker` from `.github/ci/pins.env`, and the SDK's package build
@@ -521,8 +521,8 @@ nightly and embed it, and `native-ui` makes it embed the doona assets from
 `HONK_DOONA_DIR`, so the build script only has to provide that directory (the
 frontend is never compiled). It finally rejects a GLIBC interpreter,
 `libsystemd` and any unexpected shared library, and asserts that the version
-embedded by honk's build script is the release tag `v0.1.0-beta.1` (the package
-itself is versioned `0.1.0_beta1`, which is how apk spells that pre-release)
+embedded by honk's build script is the release tag `v0.1.0-beta.4` (the package
+itself is versioned `0.1.0_beta4`, which is how apk spells that pre-release)
 and that the binary contains the embedded UI.
 
 **release** — collects the artifacts, groups the kernel assets by kernel version,
@@ -575,7 +575,7 @@ records where each piece comes from and what was taken from it.
 | [QiuSimons/vmlinux-btf](https://github.com/QiuSimons/vmlinux-btf) (OpenWrt package, GPL-3.0) | The whole approach and the code behind it: `src/shadow_btf_{core,modules,private}.c` are vendored verbatim (upstream commit `4585b7c`), including the `BTF_KEEP` trick that keeps the interesting structs reachable, and the `BTF_CFLAGS` set and the pahole invocation (detached encode, the `-J` + `objcopy` fallback, the `pahole -C sk_buff` smoke test) follow its `Makefile`. Only the environment differs: upstream runs inside the OpenWrt buildroot or its SDK container, while this workflow rebuilds `$(LINUX_DIR)`, `TARGET_CC_NOCACHE` and `STAGING_DIR` from the SDK tarball. [`vmlinux-btf/Makefile`](vmlinux-btf/Makefile) follows the install layout of its package: `/usr/lib/debug/boot/vmlinux` plus the `vmlinux-<kernel release>` symlink, with `LINUX_VERSION` (here `VMLINUX_BTF_VERSION`) as the version, except that the blob arrives prebuilt instead of being compiled inside the package. |
 | [openwrt/openwrt](https://github.com/openwrt/openwrt) (GPL-2.0) | The prebuilt SDKs (toolchain, the prepared kernel header tree, `staging_dir` layout), the `STAGING_DIR` / `STAGING_DIR_HOST` semantics from `rules.mk`, and the target metadata (`profiles.json`: `arch_packages`, `linux_kernel.version`). |
 | [daeuniverse/dae](https://github.com/daeuniverse/dae) (AGPL-3.0) | The sources at tag `v2.1.1`, built with its own `Makefile` and its `dae_bpf_headers` submodules. The cross-compile recipe (`CGO_ENABLED=0`, clang for `bpf2go`, `GOOS=linux`) follows its release workflow; the Makefile itself unsets `GOOS`/`GOARCH` around `go generate` so the eBPF generation runs on the host. Its release tags are where the package version (`2.1.1`, the tag without its leading `v`) comes from. |
-| [daeuniverse/honk](https://github.com/daeuniverse/honk) (GPL-3.0) | The sources at tag `v0.1.0-beta.1` and the build recipe from its release workflow: pinned toolchains from the `rust-toolchain.toml` files, the eBPF object built by `build.rs` with `-Zbuild-std=core --target bpfel-unknown-none` plus its BTF assertion, `bpf-linker` pinned through `.github/ci/pins.env`, the full feature set (`clash-api`, `mimalloc`, `rprx`, `ebpf`, `native-ui`), the zig wrapper trick from `ci/zigcc`/`ci/zigcxx`/`ci/zig-bindgen-env` and the CMake/bindgen handling it exists for — re-implemented here against the OpenWrt `gcc`/`g++` instead of zig, because the SDK already provides a compiler for the target and its libc. Its release tags are where the version comes from: the binary embeds `v0.1.0-beta.1`, the package is versioned `0.1.0_beta1` because apk reserves `~` for a commit hash. The `native-ui` feature embeds the doona dashboard, fetched by its `ci/fetch-doona.sh` from the release pinned in `.github/ci/pins.env`. |
+| [daeuniverse/honk](https://github.com/daeuniverse/honk) (GPL-3.0) | The sources at tag `v0.1.0-beta.4` and the build recipe from its release workflow: pinned toolchains from the `rust-toolchain.toml` files, the eBPF object built by `build.rs` with `-Zbuild-std=core --target bpfel-unknown-none` plus its BTF assertion, `bpf-linker` pinned through `.github/ci/pins.env`, the full feature set (`clash-api`, `mimalloc`, `rprx`, `ebpf`, `native-ui`), the zig wrapper trick from `ci/zigcc`/`ci/zigcxx`/`ci/zig-bindgen-env` and the CMake/bindgen handling it exists for — re-implemented here against the OpenWrt `gcc`/`g++` instead of zig, because the SDK already provides a compiler for the target and its libc. Its release tags are where the version comes from: the binary embeds `v0.1.0-beta.4`, the package is versioned `0.1.0_beta4` because apk reserves `~` for a commit hash. The `native-ui` feature embeds the doona dashboard, fetched by its `ci/fetch-doona.sh` from the release pinned in `.github/ci/pins.env`. |
 | [Zakkaus/doona](https://github.com/Zakkaus/doona) (GPL-3.0) | The prebuilt dashboard archive embedded by honk's `native-ui` feature (version and SHA-256 come from honk's `pins.env`); it is downloaded, never built, by this repository. |
 | [aya-rs/bpf-linker](https://github.com/aya-rs/bpf-linker) | The prebuilt `bpf-linker` binary (version and SHA256 come from honk's `pins.env`). |
 | GitHub Actions | `actions/checkout`, `actions/setup-go`, `actions/upload-artifact`, `actions/download-artifact`, `dtolnay/rust-toolchain`. |
@@ -623,7 +623,7 @@ job logs), the packages are pinned to the upstream releases above, and the
 * **dae** is a static Go binary with no libc dependency at all, one package per
   architecture, version `2.1.1`.
 * **The userspace packages are pinned**, so a re-run over the same OpenWrt
-  version produces the same asset names: `dae` 2.1.1 and `honk` 0.1.0_beta1 are
+  version produces the same asset names: `dae` 2.1.1 and `honk` 0.1.0_beta4 are
   fixed until the versions in the prepare job are bumped. The tag/release they
   are attached to is still the kernel based
   `openwrt-<version>-<kernel_version>-<date>`.
