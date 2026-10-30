@@ -516,7 +516,8 @@ const ServiceView = view.extend({
 			ui.showModal(_('Upgrade'), [
 				...warning('p'),
 				E('p', {}, _('Select the packages to upgrade:')),
-				E('ul', {}, updates.map((pkg, i) => E('li', {}, E('label', {}, [
+				// Rows, not a list: Bootstrap gives li its muted text color.
+				E('div', {}, updates.map((pkg, i) => E('div', {}, E('label', {}, [
 					boxes[i], ' ', pkg.name + ': ' + current[pkg.name] + ' → ' + pkg.version
 				])))),
 				E('p', {}, _('Upgrading restarts the service and interrupts connections for a few seconds. Continue?')),
