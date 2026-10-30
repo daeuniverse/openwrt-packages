@@ -114,14 +114,11 @@ msgstr "正在升級…"
 msgid "Upgrade complete."
 msgstr "升級完成。"
 
-msgid "Upgrade failed"
-msgstr "升級失敗"
-
 msgid "apk exited with code %s."
-msgstr "apk 已結束，結束代碼為 %s。"
+msgstr "apk 執行失敗，結束代碼為 %s。"
 
-msgid "To follow the feed instead, run %s, adding the other packages to the same command if needed."
-msgstr "若要改為跟隨本軟體源，請執行 %s，必要時將其他套件加入同一行命令。"
+msgid "To use this feed's version, run %s; other packages can be added to the same command."
+msgstr "如需改用本軟體源的版本，請執行 %s；其他套件可加入同一條命令。"
 
 msgid "Unable to read version: %s"
 msgstr "無法讀取版本：%s"
@@ -134,3 +131,18 @@ msgstr "取消"
 
 msgid "Close"
 msgstr "關閉"
+
+msgid "Package index update failed; using available indexes."
+msgstr "套件索引更新失敗；將使用可用的索引。"
+
+msgid "An upgrade is already running."
+msgstr "已有升級工作正在執行。"
+
+msgid "These packages were not upgraded: %s"
+msgstr "以下套件未升級：%s"
+
+msgid "Waiting for the package manager to reconnect…"
+msgstr "正在等待套件管理員重新連線…"
+
+msgid "Unable to read upgrade status. The job may still be running; reload to reconnect."
+msgstr "無法讀取升級狀態。工作可能仍在執行；請重新載入頁面以恢復連線。"

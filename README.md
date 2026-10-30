@@ -370,6 +370,15 @@ Name only the packages that are installed. apk upgrades their dependencies,
 such as `vmlinux-btf`, when a new version needs them. In LuCI, use **Check for
 updates** and then **Upgrade** under **Services → dae** or **Services → honk**,
 or the **Updates** tab under **System → Software**.
+
+The service pages let you select packages before starting a background upgrade.
+The dialog shows live output and reconnects after rpcd reloads; reopening the page
+resumes a running job. Only one upgrade runs at a time. On success, **Close**
+reloads the page. A failed repository refresh is shown as a warning without
+hiding updates from available indexes. If a selected package's version does not
+change, the dialog reports that it was not upgraded and shows the command to
+switch it to this feed's version, rather than reporting success.
+
 Upgrades retain configuration files. apk saves changed package defaults as
 `.apk-new` files beside modified configuration files.
 If apk reports `breaks: world[…]` after installation from a downloaded package,

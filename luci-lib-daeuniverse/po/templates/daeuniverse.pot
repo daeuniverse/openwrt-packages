@@ -145,15 +145,11 @@ msgid "Upgrade complete."
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js
-msgid "Upgrade failed"
-msgstr ""
-
-#: htdocs/luci-static/resources/daeuniverse/service.js
 msgid "apk exited with code %s."
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js
-msgid "To follow the feed instead, run %s, adding the other packages to the same command if needed."
+msgid "To use this feed's version, run %s; other packages can be added to the same command."
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js
@@ -170,4 +166,24 @@ msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js
 msgid "Close"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Package index update failed; using available indexes."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "An upgrade is already running."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "These packages were not upgraded: %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Waiting for the package manager to reconnect…"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Unable to read upgrade status. The job may still be running; reload to reconnect."
 msgstr ""

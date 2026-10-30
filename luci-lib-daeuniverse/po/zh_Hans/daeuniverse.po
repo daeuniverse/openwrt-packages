@@ -114,14 +114,11 @@ msgstr "正在升级…"
 msgid "Upgrade complete."
 msgstr "升级完成。"
 
-msgid "Upgrade failed"
-msgstr "升级失败"
-
 msgid "apk exited with code %s."
-msgstr "apk 已退出，退出码为 %s。"
+msgstr "apk 执行失败，退出码为 %s。"
 
-msgid "To follow the feed instead, run %s, adding the other packages to the same command if needed."
-msgstr "如需改为跟随本软件源，请执行 %s，必要时将其他软件包加入同一条命令。"
+msgid "To use this feed's version, run %s; other packages can be added to the same command."
+msgstr "如需改用本软件源的版本，请执行 %s；其他软件包可加入同一条命令。"
 
 msgid "Unable to read version: %s"
 msgstr "无法读取版本：%s"
@@ -134,3 +131,18 @@ msgstr "取消"
 
 msgid "Close"
 msgstr "关闭"
+
+msgid "Package index update failed; using available indexes."
+msgstr "软件包索引更新失败；将使用可用的索引。"
+
+msgid "An upgrade is already running."
+msgstr "已有升级任务正在运行。"
+
+msgid "These packages were not upgraded: %s"
+msgstr "以下软件包未升级：%s"
+
+msgid "Waiting for the package manager to reconnect…"
+msgstr "正在等待软件包管理器重新连接…"
+
+msgid "Unable to read upgrade status. The job may still be running; reload to reconnect."
+msgstr "无法读取升级状态。任务可能仍在运行；请重新加载页面以恢复连接。"

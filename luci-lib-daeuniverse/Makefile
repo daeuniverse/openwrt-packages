@@ -15,7 +15,7 @@ include $(TOPDIR)/rules.mk
 PKG_LICENSE:=GPL-3.0-or-later
 
 LUCI_TITLE:=Shared LuCI page for dae and honk
-LUCI_DEPENDS:=+luci-base
+LUCI_DEPENDS:=+luci-base +jshn +flock +coreutils-timeout
 LUCI_PKGARCH:=all
 
 include $(TOPDIR)/feeds/luci/luci.mk
