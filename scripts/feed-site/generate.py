@@ -55,7 +55,7 @@ THANKS = [
 # Translated text, as HTML. {app}, {conf} and {docs} follow the chosen service.
 TEXT = {
 	'en': {
-		'title': 'OpenWrt package feed',
+		'title': 'Install dae or honk on OpenWrt',
 		'subtitle': 'Install dae or honk, eBPF transparent proxy engines, on OpenWrt 25.12 and later. honk includes the doona web UI. Their LuCI apps manage the services in OpenWrt. This feed provides apk packages.',
 		'nav_guide': 'Guide',
 		'nav_mirror': 'Mirror',
@@ -78,7 +78,7 @@ TEXT = {
 		'upgrade_note': 'Run the commands below on the router, naming only the packages that are installed. In LuCI, you can also use <kbd>Check for updates</kbd> and then <kbd>Upgrade</kbd> under <kbd>Services</kbd> → <kbd>{app}</kbd>, or the <kbd>Updates</kbd> tab under <kbd>System</kbd> → <kbd>Software</kbd>. The service page lets you select packages, shows live background upgrade output, and reconnects after rpcd reloads. Reopening the page resumes a running job; <kbd>Close</kbd> reloads the page after success. Failed repository refreshes are warnings, so available updates remain visible.',
 		'upgrade_config': 'Upgrades retain configuration files. apk saves changed package defaults as <code>.apk-new</code> files beside modified configuration files. If apk reports <code>breaks: world[…]</code> after installation from a downloaded package, or the dialog says a selected package was not upgraded and shows an <code>apk add …@daeuniverse</code> command, see the <a href="#local-package-pin">local package pin note</a>.',
 		'start': 'Enable the service',
-		'start_note': '<span data-app="dae">Edit <code>{conf}</code> for your network before enabling the service.</span><span data-app="honk">The default <code>{conf}</code> uses <code>br-lan</code> as the LAN interface; edit it first only if your LAN device differs.</span> Then enable it in LuCI under <kbd>Services</kbd> → <kbd>{app}</kbd>, or run these commands on the router:',
+		'start_note': 'dae and honk cannot run at the same time. Before switching services from the command line, stop and disable the current service. <span data-app="dae">Edit <code>{conf}</code> for your network before enabling the service.</span><span data-app="honk">The default <code>{conf}</code> uses <code>br-lan</code> as the LAN interface; change it before starting if your LAN device differs. All traffic initially connects directly. After signing in to doona, add proxy nodes or subscriptions and routing rules.</span> Then enable it in LuCI under <kbd>Services</kbd> → <kbd>{app}</kbd>, or run these commands on the router:',
 		'config_note': 'For configuration syntax, see the {docs}. <span data-app="honk">To open doona, visit <code>http://&lt;router LAN IP&gt;:9527/</code> from a computer on the LAN, for example <a href="http://192.168.1.1:9527/">http://192.168.1.1:9527/</a>. Use the IP address; honk refuses host names such as <code>openwrt.lan</code>. Create the administrator account on the first visit, then sign in to edit the configuration. Like LuCI, the page uses plain HTTP on the LAN; the default OpenWrt firewall keeps the port closed on WAN. See the <a href="https://doona.daeuniverse.org/en/">doona documentation</a> for UI instructions. Report UI problems to <a href="https://github.com/Zakkaus/doona/issues">doona</a> and engine problems to <a href="https://github.com/daeuniverse/honk/issues">honk</a>.</span>',
 		'docs': 'documentation',
 		'versions': 'Supported versions',
@@ -91,12 +91,12 @@ TEXT = {
 			('23.05 and older', '≤ 5.15', 'Unsupported: the kernel is too old for dae and honk (dae needs 5.17+).'),
 		],
 		'builds': 'OpenWrt targets and BTF',
-		'builds_note': 'Official OpenWrt kernels lack BTF, the kernel type information dae and honk need. Install <code>vmlinux-btf</code> for the targets and releases below. This feed does not support other targets. Kernels with BTF (ImmortalWrt) use the empty <code>vmlinux-btf-builtin</code> package instead.',
+		'builds_note': 'Official OpenWrt kernels lack BTF, the kernel type information dae and honk need. On official OpenWrt, this feed supports only the targets and releases below, and each needs <code>vmlinux-btf</code>. Kernels with BTF (ImmortalWrt) use the empty <code>vmlinux-btf-builtin</code> package instead.',
 		'check': 'As root on the router, check the release, package architecture and target:',
 		'th_target': 'Target',
 		'th_releases': 'Releases',
 		'colon': ': ',
-		'arches': 'Available package architectures follow. ImmortalWrt only needs a matching architecture. Neither system has packages or support for 32-bit ARM or MIPS:',
+		'arches': 'Available package architectures follow. ImmortalWrt only needs a matching architecture. This feed provides no packages or support for 32-bit ARM or MIPS:',
 		'no_builds': 'This feed has no published packages yet.',
 		'errors': 'Common errors',
 		'th_error': 'Message',
@@ -104,7 +104,7 @@ TEXT = {
 		'error_items': [
 			('UNTRUSTED signature', 'The router needs this feed\'s public key to verify packages. Complete <em>Import the signing key</em>, then run <code>apk update</code>.'),
 			('This kernel has no BTF of its own', 'The OpenWrt router is missing the kmods repository, so apk installed <code>vmlinux-btf-builtin</code> instead of <code>vmlinux-btf</code>. Add both OpenWrt lines from <em>Add the repositories</em>, then run <code>apk update &amp;&amp; apk upgrade vmlinux-btf-builtin</code>. If the router\'s target is missing from the table above, this feed has no <code>vmlinux-btf</code> for it. dae and honk cannot run on that router.'),
-			('breaks: vmlinux-btf', 'The router is not running an official OpenWrt release kernel (for example, it runs ImmortalWrt, self-built or snapshot firmware). apk cannot install <code>vmlinux-btf</code> on that kernel. These systems do not need the kmods repository: delete the line containing <code>kmods</code> from <code>/etc/apk/repositories.d/daeuniverse.list</code>, run <code>apk update</code> and install again.'),
+			('breaks: vmlinux-btf', 'The selected <code>vmlinux-btf</code> package does not match the installed kernel. For an official OpenWrt release, check that the kmods URL matches <code>DISTRIB_RELEASE</code> and <code>DISTRIB_TARGET</code>. If <code>/sys/kernel/btf/vmlinux</code> exists, remove the line containing <code>kmods</code> from <code>/etc/apk/repositories.d/daeuniverse.list</code>, run <code>apk update</code>, and install again. A custom or snapshot kernel without built-in BTF needs BTF generated for that kernel; removing the repository does not provide it.'),
 			('breaks: world[honk><Q1…]', 'honk (or dae) was installed from a downloaded <code>.apk</code> file, which pins it to that file, so every <code>apk add</code> fails once this feed carries another version, even for unrelated tools. Run <code>apk add honk@daeuniverse</code> (or <code>dae@daeuniverse</code>) to follow this feed, listing any other packages in the same command.'),
 		],
 		'edit': 'Edit this page',
@@ -115,7 +115,7 @@ TEXT = {
 		'mirror_title': 'Mirror the feed',
 		'mirror_subtitle': 'Sync the feed with rsync and serve it over HTTP(S). Routers verify the signed packages and indexes with the same key.',
 		'sync': 'Sync',
-		'sync_note': '<code>--delay-updates</code> and <code>--delete-delay</code> keep indexes consistent with packages. Syncing every few hours is enough.',
+		'sync_note': '<code>--delay-updates</code> postpones file replacement until the transfer ends, and <code>--delete-delay</code> postpones deletions. These options do not update the entire repository atomically. Sync every few hours.',
 		'serve': 'Serve',
 		'serve_note': 'Serve the directory without changing its contents. Routers request <code>&lt;series&gt;/packages/&lt;arch&gt;/</code> and <code>&lt;series&gt;/kmods/&lt;release&gt;/&lt;target&gt;/&lt;subtarget&gt;/</code>.',
 		'use': 'Use',
@@ -138,7 +138,7 @@ TEXT = {
 		},
 	},
 	'zh-cn': {
-		'title': 'OpenWrt 软件源',
+		'title': '在 OpenWrt 上安装 dae 或 honk',
 		'subtitle': '在 OpenWrt 25.12 及以上版本安装 eBPF 透明代理引擎 dae 或 honk。honk 内置 doona 网页界面。用 LuCI 应用在 OpenWrt 中管理服务。本软件源提供 apk 软件包。',
 		'nav_guide': '说明',
 		'nav_mirror': '镜像',
@@ -161,7 +161,7 @@ TEXT = {
 		'upgrade_note': '在路由器上执行以下命令，命令中只写已安装的软件包。也可在 LuCI 的<kbd>服务</kbd> → <kbd>{app}</kbd> 中点击<kbd>检查更新</kbd>后再点击<kbd>升级</kbd>，或使用<kbd>系统</kbd> → <kbd>软件包</kbd>中的<kbd>更新</kbd>页。服务页面可选择软件包，实时显示后台升级输出，并在 rpcd 重新加载后恢复连接。重新打开页面可查看正在运行的任务；升级成功后点击<kbd>关闭</kbd>会重新加载页面。软件源刷新失败时显示警告，仍会列出可用更新。',
 		'upgrade_config': '升级会保留配置文件；软件包默认配置有变化时，新版本会以 <code>.apk-new</code> 文件保存在已修改的配置文件旁。用下载的软件包安装后，如果 apk 报告 <code>breaks: world[…]</code>，或对话框提示所选软件包未升级并显示 <code>apk add …@daeuniverse</code> 命令，请参阅<a href="#local-package-pin">本地软件包锁定说明</a>。',
 		'start': '启用服务',
-		'start_note': '<span data-app="dae">启用服务前，按网络环境修改 <code>{conf}</code>。</span><span data-app="honk">默认的 <code>{conf}</code> 以 <code>br-lan</code> 为 LAN 接口，LAN 设备不同时才需先修改。</span>然后在 LuCI 的<kbd>服务</kbd> → <kbd>{app}</kbd> 中启用服务，或在路由器上执行以下命令：',
+		'start_note': 'dae 和 honk 不能同时运行。通过命令行切换服务前，先停止并禁用当前服务。<span data-app="dae">启用服务前，按网络环境修改 <code>{conf}</code>。</span><span data-app="honk">默认的 <code>{conf}</code> 使用 LAN 接口 <code>br-lan</code>；如果 LAN 设备不同，请先修改。初始配置让所有流量直连。登录 doona 后，添加代理节点或订阅，并配置路由规则。</span>然后在 LuCI 的<kbd>服务</kbd> → <kbd>{app}</kbd> 中启用服务，或在路由器上执行以下命令：',
 		'config_note': '配置语法见 {docs}。<span data-app="honk">要打开 doona，在局域网内的电脑上访问 <code>http://&lt;路由器 LAN IP&gt;:9527/</code>，例如 <a href="http://192.168.1.1:9527/">http://192.168.1.1:9527/</a>。请使用 IP 地址，honk 会拒绝 <code>openwrt.lan</code> 等主机名。首次访问时创建管理员账户，再登录编辑配置。与 LuCI 相同，该页面在局域网内使用明文 HTTP；OpenWrt 默认防火墙不会在 WAN 侧开放该端口。界面操作见 <a href="https://doona.daeuniverse.org/zh-CN/">doona 文档</a>。界面问题请向 <a href="https://github.com/Zakkaus/doona/issues">doona</a> 反馈，引擎问题请向 <a href="https://github.com/daeuniverse/honk/issues">honk</a> 反馈。</span>',
 		'docs': '文档',
 		'versions': '支持的版本',
@@ -174,12 +174,12 @@ TEXT = {
 			('23.05 及更早', '≤ 5.15', '不支持：内核版本低于 dae 和 honk 的要求（dae 需要 5.17 以上）。'),
 		],
 		'builds': 'OpenWrt target 与 BTF',
-		'builds_note': '官方 OpenWrt 内核不含 BTF，即 dae 和 honk 所需的内核类型信息。下表中的 target 和版本需要安装 <code>vmlinux-btf</code>。本软件源不支持其他 target。内核自带 BTF 时（ImmortalWrt），改用空软件包 <code>vmlinux-btf-builtin</code>。',
+		'builds_note': '官方 OpenWrt 内核不含 BTF，即 dae 和 honk 所需的内核类型信息。对于官方 OpenWrt，本软件源仅支持下表列出的 target 和版本，并需要安装 <code>vmlinux-btf</code>。内核自带 BTF 时（ImmortalWrt），改用空软件包 <code>vmlinux-btf-builtin</code>。',
 		'check': '在路由器上以 root 身份查询版本、软件包架构和 target：',
 		'th_target': 'Target',
 		'th_releases': '版本',
 		'colon': '：',
-		'arches': '可用的软件包架构如下。ImmortalWrt 只需架构相符。两种系统均不提供 32 位 ARM 或 MIPS 的软件包和支持：',
+		'arches': '可用的软件包架构如下。ImmortalWrt 只需架构相符。本软件源不提供 32 位 ARM 或 MIPS 的软件包，也不支持这些架构：',
 		'no_builds': '尚未发布。',
 		'errors': '常见错误',
 		'th_error': '错误信息',
@@ -187,7 +187,7 @@ TEXT = {
 		'error_items': [
 			('UNTRUSTED signature', '路由器需要本软件源的公钥才能验证软件包。完成<em>导入签名公钥</em>这一步，再执行 <code>apk update</code>。'),
 			('This kernel has no BTF of its own', 'OpenWrt 路由器缺少 kmods 软件源，所以 apk 安装了 <code>vmlinux-btf-builtin</code>，而不是 <code>vmlinux-btf</code>。按<em>添加软件源</em>步骤添加 OpenWrt 的两行软件源，再执行 <code>apk update &amp;&amp; apk upgrade vmlinux-btf-builtin</code>。如果上表没有路由器的 target，本软件源就没有对应的 <code>vmlinux-btf</code>，dae 和 honk 无法在这台路由器上运行。'),
-			('breaks: vmlinux-btf', '路由器运行的不是官方 OpenWrt 正式版内核，例如使用了 ImmortalWrt、自行编译或快照版固件。apk 无法在该内核上安装 <code>vmlinux-btf</code>。这类系统不需要 kmods 软件源：删除 <code>/etc/apk/repositories.d/daeuniverse.list</code> 中含 <code>kmods</code> 的那一行，执行 <code>apk update</code> 后重新安装。'),
+			('breaks: vmlinux-btf', '所选 <code>vmlinux-btf</code> 软件包与已安装的内核不匹配。使用官方 OpenWrt 正式版时，检查 kmods 地址是否与 <code>DISTRIB_RELEASE</code> 和 <code>DISTRIB_TARGET</code> 一致。如果 <code>/sys/kernel/btf/vmlinux</code> 存在，删除 <code>/etc/apk/repositories.d/daeuniverse.list</code> 中含 <code>kmods</code> 的那一行，执行 <code>apk update</code> 后重新安装。未内置 BTF 的自编译或快照版内核需要为该内核生成的 BTF；删除软件源不能补齐 BTF。'),
 			('breaks: world[honk><Q1…]', 'honk（或 dae）是用下载的 <code>.apk</code> 文件安装的，会锁定为该文件；本软件源出现其他版本后，任何 <code>apk add</code> 都会失败，即使安装的是无关工具。执行 <code>apk add honk@daeuniverse</code>（或 <code>dae@daeuniverse</code>）改为跟随本软件源，其他软件包可写在同一条命令中。'),
 		],
 		'edit': '编辑此页',
@@ -195,10 +195,10 @@ TEXT = {
 		'all_files': '全部文件',
 		'source': '源代码',
 		'thanks': '镜像服务器由 <a href="{gentoozh}">gentoo-zh</a> 提供',
-		'mirror_title': '镜像本源',
+		'mirror_title': '建立软件源镜像',
 		'mirror_subtitle': '用 rsync 同步本软件源，通过 HTTP(S) 提供访问。路由器用同一公钥验证已签名的软件包和索引。',
 		'sync': '同步',
-		'sync_note': '<code>--delay-updates</code> 和 <code>--delete-delay</code> 保持索引与软件包一致。每几小时同步一次即可。',
+		'sync_note': '<code>--delay-updates</code> 将文件替换延后到传输结束，<code>--delete-delay</code> 延后删除旧文件。这两个选项不能保证整个软件源同时切换到新版本。每隔几小时同步一次。',
 		'serve': '提供',
 		'serve_note': '提供该目录，不要修改其中的内容。路由器访问 <code>&lt;series&gt;/packages/&lt;arch&gt;/</code> 和 <code>&lt;series&gt;/kmods/&lt;release&gt;/&lt;target&gt;/&lt;subtarget&gt;/</code>。',
 		'use': '使用',
@@ -221,8 +221,8 @@ TEXT = {
 		},
 	},
 	'zh-tw': {
-		'title': 'OpenWrt 軟體源',
-		'subtitle': '在 OpenWrt 25.12 以上版本安裝 eBPF 透明代理引擎 dae 或 honk。honk 內建 doona 網頁介面。用 LuCI 應用程式在 OpenWrt 中管理服務。本軟體源提供 apk 套件。',
+		'title': '在 OpenWrt 上安裝 dae 或 honk',
+		'subtitle': '在 OpenWrt 25.12 以上版本安裝 eBPF 透明代理引擎 dae 或 honk。honk 內建 doona 網頁介面。用 LuCI 應用程式在 OpenWrt 中管理服務。本套件來源提供 apk 套件。',
 		'nav_guide': '說明',
 		'nav_mirror': '鏡像',
 		'nav_thanks': '致謝',
@@ -236,15 +236,15 @@ TEXT = {
 		'service': '服務',
 		'install': '安裝',
 		'key': '匯入簽章公鑰',
-		'repos': '加入軟體源',
-		'repos_note': '<code>@daeuniverse</code> 標籤指定從本軟體源安裝套件。不帶標籤時，apk 優先使用系統套件。',
+		'repos': '加入套件來源',
+		'repos_note': '<code>@daeuniverse</code> 標籤指定從本套件來源安裝套件。不帶標籤時，apk 優先使用系統套件。',
 		'add': '安裝套件',
 		'add_note': '不使用 LuCI 時，省略<code>luci-</code>開頭的套件。',
 		'upgrade': '升級',
-		'upgrade_note': '在路由器上執行以下指令，指令中只寫已安裝的套件。也可在 LuCI 的<kbd>服務</kbd> → <kbd>{app}</kbd> 中點選<kbd>檢查更新</kbd>後再點選<kbd>升級</kbd>，或使用<kbd>系統</kbd> → <kbd>軟體</kbd>中的<kbd>更新</kbd>分頁。服務頁面可選擇套件，即時顯示背景升級輸出，並在 rpcd 重新載入後恢復連線。重新開啟頁面可查看正在執行的工作；升級成功後點選<kbd>關閉</kbd>會重新載入頁面。軟體源重新整理失敗時顯示警告，仍會列出可用更新。',
+		'upgrade_note': '在路由器上執行以下指令，指令中只寫已安裝的套件。也可在 LuCI 的<kbd>服務</kbd> → <kbd>{app}</kbd> 中點選<kbd>檢查更新</kbd>後再點選<kbd>升級</kbd>，或使用<kbd>系統</kbd> → <kbd>軟體</kbd>中的<kbd>更新</kbd>分頁。服務頁面可選擇套件，即時顯示背景升級輸出，並在 rpcd 重新載入後恢復連線。重新開啟頁面可查看正在執行的工作；升級成功後點選<kbd>關閉</kbd>會重新載入頁面。套件來源重新整理失敗時顯示警告，仍會列出可用更新。',
 		'upgrade_config': '升級會保留設定檔；套件預設設定有變更時，新版本會以 <code>.apk-new</code> 檔案儲存在已修改的設定檔旁。用下載的套件安裝後，如果 apk 回報 <code>breaks: world[…]</code>，或對話框提示所選套件未升級並顯示 <code>apk add …@daeuniverse</code> 命令，請參閱<a href="#local-package-pin">本機套件鎖定說明</a>。',
 		'start': '啟用服務',
-		'start_note': '<span data-app="dae">啟用服務前，依網路環境修改 <code>{conf}</code>。</span><span data-app="honk">預設的 <code>{conf}</code> 以 <code>br-lan</code> 為 LAN 介面，LAN 裝置不同時才需先修改。</span>然後在 LuCI 的<kbd>服務</kbd> → <kbd>{app}</kbd> 中啟用服務，或在路由器上執行以下指令：',
+		'start_note': 'dae 和 honk 不能同時執行。透過命令列切換服務前，先停止並停用目前的服務。<span data-app="dae">啟用服務前，依網路環境修改 <code>{conf}</code>。</span><span data-app="honk">預設的 <code>{conf}</code> 使用 LAN 介面 <code>br-lan</code>；如果 LAN 裝置不同，請先修改。初始設定讓所有流量直接連線。登入 doona 後，新增代理節點或訂閱，並設定路由規則。</span>然後在 LuCI 的<kbd>服務</kbd> → <kbd>{app}</kbd> 中啟用服務，或在路由器上執行以下指令：',
 		'config_note': '設定語法見 {docs}。<span data-app="honk">要開啟 doona，在區域網路內的電腦上前往 <code>http://&lt;路由器 LAN IP&gt;:9527/</code>，例如 <a href="http://192.168.1.1:9527/">http://192.168.1.1:9527/</a>。請使用 IP 位址，honk 會拒絕 <code>openwrt.lan</code> 等主機名稱。首次開啟時建立管理員帳號，再登入編輯設定。與 LuCI 相同，此頁面在區域網路內使用明文 HTTP；OpenWrt 預設防火牆不會在 WAN 側開放此連接埠。介面操作見 <a href="https://doona.daeuniverse.org/zh-TW/">doona 文件</a>。介面問題請向 <a href="https://github.com/Zakkaus/doona/issues">doona</a> 回報，引擎問題請向 <a href="https://github.com/daeuniverse/honk/issues">honk</a> 回報。</span>',
 		'docs': '文件',
 		'versions': '支援的版本',
@@ -253,42 +253,42 @@ TEXT = {
 		'th_status': '狀態',
 		'version_rows': [
 			('25.12', '6.12', '支援 OpenWrt 和 ImmortalWrt。'),
-			('24.10', '6.6', '不支援：opkg 沒有軟體源標籤，本軟體源會取代同名套件。ImmortalWrt 已內建 dae。honk 需要核心 6.12 以上。'),
+			('24.10', '6.6', '不支援：opkg 沒有套件來源標籤，本套件來源會取代同名套件。ImmortalWrt 已內建 dae。honk 需要核心 6.12 以上。'),
 			('23.05 及更早', '≤ 5.15', '不支援：核心版本低於 dae 和 honk 的要求（dae 需要 5.17 以上）。'),
 		],
 		'builds': 'OpenWrt target 與 BTF',
-		'builds_note': '官方 OpenWrt 核心不含 BTF，也就是 dae 和 honk 所需的核心型別資訊。下表中的 target 和版本需要安裝 <code>vmlinux-btf</code>。本軟體源不支援其他 target。核心內建 BTF 時（ImmortalWrt），改用空套件 <code>vmlinux-btf-builtin</code>。',
+		'builds_note': '官方 OpenWrt 核心不含 BTF，也就是 dae 和 honk 所需的核心型別資訊。對於官方 OpenWrt，本套件來源僅支援下表列出的 target 和版本，並需要安裝 <code>vmlinux-btf</code>。核心內建 BTF 時（ImmortalWrt），改用空套件 <code>vmlinux-btf-builtin</code>。',
 		'check': '在路由器上以 root 身分查詢版本、套件架構和 target：',
 		'th_target': 'Target',
 		'th_releases': '版本',
 		'colon': '：',
-		'arches': '可用的套件架構如下。ImmortalWrt 只需架構相符。兩種系統均不提供 32 位元 ARM 或 MIPS 的套件和支援：',
+		'arches': '可用的套件架構如下。ImmortalWrt 只需架構相符。本套件來源不提供 32 位元 ARM 或 MIPS 的套件，也不支援這些架構：',
 		'no_builds': '尚未發布。',
 		'errors': '常見錯誤',
 		'th_error': '錯誤訊息',
 		'th_cause': '原因',
 		'error_items': [
-			('UNTRUSTED signature', '路由器需要本軟體源的公鑰才能驗證套件。完成<em>匯入簽章公鑰</em>這一步，再執行 <code>apk update</code>。'),
-			('This kernel has no BTF of its own', 'OpenWrt 路由器缺少 kmods 軟體源，所以 apk 安裝了 <code>vmlinux-btf-builtin</code>，而不是 <code>vmlinux-btf</code>。依<em>加入軟體源</em>步驟加入 OpenWrt 的兩行軟體源，再執行 <code>apk update &amp;&amp; apk upgrade vmlinux-btf-builtin</code>。如果上表沒有路由器的 target，本軟體源就沒有對應的 <code>vmlinux-btf</code>，dae 和 honk 無法在這台路由器上運作。'),
-			('breaks: vmlinux-btf', '路由器執行的不是官方 OpenWrt 正式版核心，例如使用了 ImmortalWrt、自行編譯或快照版韌體。apk 無法在該核心上安裝 <code>vmlinux-btf</code>。這類系統不需要 kmods 軟體源：刪除 <code>/etc/apk/repositories.d/daeuniverse.list</code> 中含 <code>kmods</code> 的那一行，執行 <code>apk update</code> 後重新安裝。'),
-			('breaks: world[honk><Q1…]', 'honk（或 dae）是用下載的 <code>.apk</code> 檔案安裝的，會鎖定為該檔案；本軟體源出現其他版本後，任何 <code>apk add</code> 都會失敗，即使安裝的是無關工具。執行 <code>apk add honk@daeuniverse</code>（或 <code>dae@daeuniverse</code>）改為跟隨本軟體源，其他套件可寫在同一行命令中。'),
+			('UNTRUSTED signature', '路由器需要本套件來源的公鑰才能驗證套件。完成<em>匯入簽章公鑰</em>這一步，再執行 <code>apk update</code>。'),
+			('This kernel has no BTF of its own', 'OpenWrt 路由器缺少 kmods 套件來源，所以 apk 安裝了 <code>vmlinux-btf-builtin</code>，而不是 <code>vmlinux-btf</code>。依<em>加入套件來源</em>步驟加入 OpenWrt 的兩行套件來源，再執行 <code>apk update &amp;&amp; apk upgrade vmlinux-btf-builtin</code>。如果上表沒有路由器的 target，本套件來源就沒有對應的 <code>vmlinux-btf</code>，dae 和 honk 無法在這台路由器上運作。'),
+			('breaks: vmlinux-btf', '所選 <code>vmlinux-btf</code> 套件與已安裝的核心不相符。使用官方 OpenWrt 正式版時，檢查 kmods 位址是否與 <code>DISTRIB_RELEASE</code> 和 <code>DISTRIB_TARGET</code> 一致。如果 <code>/sys/kernel/btf/vmlinux</code> 存在，刪除 <code>/etc/apk/repositories.d/daeuniverse.list</code> 中含 <code>kmods</code> 的那一行，執行 <code>apk update</code> 後重新安裝。未內建 BTF 的自行編譯或快照版核心需要為該核心產生的 BTF；刪除套件來源不能補齊 BTF。'),
+			('breaks: world[honk><Q1…]', 'honk（或 dae）是用下載的 <code>.apk</code> 檔案安裝的，會鎖定為該檔案；本套件來源出現其他版本後，任何 <code>apk add</code> 都會失敗，即使安裝的是無關工具。執行 <code>apk add honk@daeuniverse</code>（或 <code>dae@daeuniverse</code>）改為跟隨本套件來源，其他套件可寫在同一行命令中。'),
 		],
 		'edit': '編輯此頁',
 		'updated': '更新於 {date}',
 		'all_files': '全部檔案',
 		'source': '原始碼',
 		'thanks': '鏡像伺服器由 <a href="{gentoozh}">gentoo-zh</a> 提供',
-		'mirror_title': '鏡像本源',
-		'mirror_subtitle': '用 rsync 同步本軟體源，透過 HTTP(S) 提供存取。路由器以同一把公鑰驗證已簽章的套件和索引。',
+		'mirror_title': '建立套件來源鏡像',
+		'mirror_subtitle': '用 rsync 同步本套件來源，透過 HTTP(S) 提供存取。路由器以同一把公鑰驗證已簽章的套件和索引。',
 		'sync': '同步',
-		'sync_note': '<code>--delay-updates</code> 和 <code>--delete-delay</code> 保持索引與套件一致。每幾小時同步一次即可。',
+		'sync_note': '<code>--delay-updates</code> 將檔案替換延後到傳輸結束，<code>--delete-delay</code> 延後刪除舊檔案。這兩個選項不能保證整個套件來源同時切換到新版本。每隔幾小時同步一次。',
 		'serve': '提供',
 		'serve_note': '提供該目錄，不要修改其中的內容。路由器存取 <code>&lt;series&gt;/packages/&lt;arch&gt;/</code> 和 <code>&lt;series&gt;/kmods/&lt;release&gt;/&lt;target&gt;/&lt;subtarget&gt;/</code>。',
 		'use': '使用',
 		'use_note': '依<a href="./">說明</a>操作，將 <code>FEED</code> 設為鏡像位址：',
 		'use_key': '從本站匯入簽章公鑰，不要從鏡像匯入。',
 		'thanks_title': '致謝',
-		'thanks_subtitle': '本軟體源使用了以下專案。',
+		'thanks_subtitle': '本套件來源使用了以下專案。',
 		'th_project': '專案',
 		'th_used': '用途',
 		'thanks_used': {
@@ -532,7 +532,7 @@ def guide(lang, T, builds, base):
 </ol>
 <h3>{T["upgrade"]}</h3>
 <p>{T["upgrade_note"]}</p>
-{code("apk update\napk upgrade dae honk luci-app-dae luci-app-honk v2ray-geoip v2ray-geosite", T)}
+{per_app(lambda app: f"apk update\napk upgrade {app} luci-app-{app} v2ray-geoip v2ray-geosite")}
 <p>{T["upgrade_config"]}</p>
 
 {h2["errors"]}
@@ -544,7 +544,7 @@ def mirror(T, rsync):
 	sections = [('sync', T['sync']), ('serve', T['serve']), ('use', T['use'])]
 	return sections, f'''
 {heading("sync", T["sync"])}
-{code(f"rsync -av --delete-delay --delay-updates \\\n    {rsync}/ \\\n    /srv/mirror/openwrt-daeuniverse/", T)}
+{code(f"mkdir -p /srv/mirror/openwrt-daeuniverse\nrsync -av --delete-delay --delay-updates \\\n    {rsync}/ \\\n    /srv/mirror/openwrt-daeuniverse/", T)}
 <p>{T["sync_note"]}</p>
 
 {heading("serve", T["serve"])}
@@ -596,7 +596,7 @@ def page(lang, html_lang, T, base, pages, name, sections, body):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>{T[title]} · daeuniverse</title>
+<title>{T[title]} | daeuniverse</title>
 <meta name="description" content="{T[subtitle]}">
 <link rel="icon" href="../assets/daeuniverse.png">
 <link rel="stylesheet" href="../assets/style.css">
