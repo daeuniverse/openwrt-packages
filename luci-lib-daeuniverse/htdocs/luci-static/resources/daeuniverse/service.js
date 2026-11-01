@@ -23,6 +23,11 @@
  *                  on a broken configuration, or null
  *   logIdent       RegExp matching the start of the service's log messages
  *   webUi          optional async hook: loaded files to { url?, note? } or null
+ *   webUiFlag      optional { read, path, write }: a checkbox for the web UI
+ *                  that lives in the configuration files, not in UCI.
+ *                  read(files) is the state, path(files) the file to change
+ *                  and write(text, on) the new text of that file. Saving
+ *                  writes the file and restarts a running service.
  */
 
 const callServiceList = rpc.declare({
@@ -253,6 +258,7 @@ const STYLE = `
 /* The page buttons save the settings of the status tab only; the editor has its own. */
 body:has(.du-panes > [data-tab="status"]:not([data-tab-active="true"])) .cbi-page-actions { display: none; }
 .du-panes .right { margin: .5em 0; }
+.cbi-value:has(.du-web-ui:empty) { display: none; }
 /* Bootstrap's warning and error colors, else Argon's: its warning text color
    (--warning itself is close to red) and --danger. A theme with neither
    leaves the line in its text color. */
@@ -440,6 +446,64 @@ const ServiceView = view.extend({
 			})
 			.catch(err => ui.addNotification(null,
 				E('p', _('Saved, but the service could not be reloaded: %s').format(err.message)), 'warning'));
+	},
+
+	/* Web UI */
+
+	/* The link or the note of the webUi hook; the row is hidden while there is none (see STYLE) */
+	async updateWebUi(files) {
+		const webUi = await this.app.webUi(files);
+		const nodes = [];
+		if (webUi?.url)
+			nodes.push(E('a', {
+				'class': 'btn cbi-button',
+				'href': webUi.url,
+				'target': '_blank',
+				'rel': 'noopener noreferrer'
+			}, _('Open doona')));
+		if (webUi?.note)
+			nodes.push(webUi.url ? E('div', { 'class': 'cbi-value-description' }, webUi.note) : E('span', {}, webUi.note));
+		this.webUiBox.replaceChildren(...nodes);
+	},
+
+	/* Unsaved edits in the editor would undo the change, be overwritten by it,
+	   or be lost when the page reloads after Save & Apply. */
+	webUiFlagConflict() {
+		const dirty = this.files.find(file => file.dirty);
+		return dirty ? _('Save or discard the unsaved changes of %s first').format(dirty.path) : '';
+	},
+
+	/* The webUiFlag is saved with the page: write the file, restart the
+	   service when it runs, then show what the files say now. */
+	async writeWebUiFlag(on) {
+		const { name, webUiFlag } = this.app;
+		const files = await collectFiles(this.entry, readFromDisk);
+		const path = webUiFlag.path(files);
+		const old = files.find(file => file.path === path)?.text ?? '';
+		const text = webUiFlag.write(old, on);
+
+		if (text !== old) {
+			const conflict = this.webUiFlagConflict();
+			if (conflict)
+				throw new Error(conflict);
+
+			await fs.write(path, text, 0o600);
+			if (await isRunning(name)) {
+				try {
+					await callInitAction(name, 'restart');
+					ui.addTimeLimitedNotification(null, E('p', _('Saved, the service is restarting')), 5000, 'info');
+				}
+				catch (err) {
+					ui.addNotification(null, E('p', _('Saved, but the service could not be restarted: %s').format(err.message)), 'warning');
+				}
+			}
+		}
+
+		this.webUiState = on;
+		await collectFiles(this.entry, readFromDisk).then(fresh => {
+			this.setFiles(fresh);
+			return this.updateWebUi(fresh);
+		});
 	},
 
 	/* Packages */
@@ -724,20 +788,31 @@ const ServiceView = view.extend({
 			return (normalize(value) === value && value.startsWith(dir + '/')) || _('Must be a file in %s').format(dir);
 		};
 
-		const webUi = await this.app.webUi?.(files);
-		if (webUi?.url || webUi?.note) {
-			o = s.option(form.DummyValue, '_web_ui', _('Web interface'));
-			o.renderWidget = () => webUi.url ? E('a', {
-				'class': 'btn cbi-button',
-				'href': webUi.url,
-				'target': '_blank',
-				'rel': 'noopener noreferrer'
-			}, _('Open doona')) : E('span', {}, webUi.note);
-			if (webUi.url && webUi.note)
-				o.description = webUi.note;
+		const { webUi, webUiFlag } = this.app;
+		if (webUiFlag) {
+			this.webUiState = webUiFlag.read(files);
+			const flag = s.option(form.Flag, '_web_ui_enabled', _('Enable the doona web UI'),
+				_('Unchecked, honk runs without the native API and doona. Saving restarts honk.'));
+			flag.rmempty = false;
+			flag.cfgvalue = () => this.webUiState ? '1' : '0';
+			flag.write = (section_id, value) => this.writeWebUiFlag(value === '1');
+			flag.remove = () => {};
+			// Only a changed box can conflict. A checkbox widget reports '1' as its
+			// value whatever its state, so the form value is read instead.
+			flag.validate = section_id => (flag.formvalue(section_id) === '1') === this.webUiState
+				|| this.webUiFlagConflict() || true;
 		}
 
-		return m.render().then(mapNode => {
+		if (webUi) {
+			this.webUiBox = E('div', { 'class': 'du-web-ui' });
+			o = s.option(form.DummyValue, '_web_ui', _('Web interface'));
+			o.renderWidget = () => this.webUiBox;
+		}
+
+		return m.render().then(async mapNode => {
+			if (webUi)
+				await this.updateWebUi(files);
+
 			const logPane = E('div', { 'data-tab': 'log', 'data-tab-title': _('Log') }, [
 				E('div', { 'class': 'cbi-section' }, [
 					E('div', { 'class': 'right' }, E('button', {

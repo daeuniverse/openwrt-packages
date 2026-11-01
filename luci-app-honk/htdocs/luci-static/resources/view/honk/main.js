@@ -1,5 +1,6 @@
 'use strict';
 'require daeuniverse.service as service';
+'require honk.nativeapi as nativeApi';
 'require rpc';
 
 const callLanAddress = rpc.declare({
@@ -24,13 +25,11 @@ function isIp(host) {
 
 async function webUi(files) {
 	for (const file of files) {
-		const text = (file.text ?? '').replace(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|#[^\n]*/g,
-			match => match.startsWith('#') ? '' : match);
-		const block = /(?:^|[\s{;}])native_api\s*\{([^{}]*)\}/.exec(text);
-		if (!block)
+		const body = nativeApi.body(file.text ?? '');
+		if (body == null)
 			continue;
 		const value = key => {
-			const match = new RegExp('(?:^|[\\s;,])' + key + '\\s*:\\s*(?:\'([^\']*)\'|"([^"]*)"|([^\\s;,]+))').exec(block[1]);
+			const match = new RegExp('(?:^|[\\s;,])' + key + '\\s*:\\s*(?:\'([^\']*)\'|"([^"]*)"|([^\\s;,]+))').exec(body);
 			return match ? (match[1] ?? match[2] ?? match[3]) : '';
 		};
 		if (value('enabled') !== 'true' || !value('ui'))
@@ -81,6 +80,13 @@ return service.View.extend({
 		defaultConfig: '/etc/honk/config.dae',
 		// honk-core has no offline check; a broken file is reported in the log.
 		validate: null,
+		// honk-core has no switch for the native API either: its block in the
+		// configuration is the single source of truth.
+		webUiFlag: {
+			read: files => nativeApi.isEnabled(files),
+			path: files => nativeApi.targetPath(files),
+			write: (text, on) => nativeApi.apply(text, on)
+		},
 		// procd forwards stdout as "honk-core[pid]:", the init script logs as "honk:".
 		logIdent: /^honk(-core)?(\[\d+\])?: /
 	}

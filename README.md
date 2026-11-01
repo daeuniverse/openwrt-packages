@@ -263,6 +263,10 @@ LuCI's **Services → honk → Service status** tab has a **Web interface** row.
 by hostname, the link uses the LAN IPv4 address from UCI instead.
 When honk listens on `127.0.0.1` or `::1`, the row shows the SSH tunnel command
 instead. The row is absent when no enabled native API with a UI is configured.
+The **Enable the doona web UI** checkbox above it, checked by default, sets
+`enabled` in the `native_api` block of the configuration file and restarts honk
+when you save. Unchecked, honk runs only the core: no native API, and port 9527
+is closed. Checking it in a configuration without that block adds the shipped one.
 
 The [shipped configuration](honk/files/config.dae) enables `password_auth` and
 `config_write` on the native API.
