@@ -10,7 +10,8 @@ only what one run built:
   <series>/kmods/<release>/<target>/<subtarget>/packages.adb  e.g. 25.12.6
 It writes <lang>/index.html in English, Simplified and Traditional Chinese, with
 an rsync URL also <lang>/mirror.html on mirroring the feed, <lang>/thanks.html,
-and copies assets/ next to them. Only the standard library is used.
+and matching Markdown pages, and copies assets/ next to them. Only the standard
+library is used.
 """
 
 import datetime
@@ -19,6 +20,8 @@ import re
 import shutil
 import sys
 from pathlib import Path
+from html.parser import HTMLParser
+from xml.etree.ElementTree import TreeBuilder
 
 HERE = Path(__file__).resolve().parent
 GITHUB = 'https://github.com/daeuniverse/openwrt-packages'
@@ -629,6 +632,108 @@ def page(lang, html_lang, T, base, pages, name, sections, body):
 '''
 
 
+class BodyParser(HTMLParser):
+	"""Parse our page fragments, including the void inputs in the tab controls."""
+	def __init__(self, body):
+		super().__init__()
+		self.tree = TreeBuilder()
+		self.tree.start('body', {})
+		self.feed(body)
+		self.tree.end('body')
+		self.root = self.tree.close()
+
+	def handle_starttag(self, tag, attrs):
+		self.tree.start(tag, dict(attrs))
+		if tag == 'input':
+			self.tree.end(tag)
+
+	def handle_endtag(self, tag):
+		self.tree.end(tag)
+
+	def handle_data(self, data):
+		self.tree.data(data)
+
+
+def markdown_body(body, base):
+	"""Render the shared body with every service and system variant visible."""
+	blocks = []
+	def escape(text):
+		return re.sub(r'([\\`*\[\]_])', r'\\\1', text).replace('<', '&lt;').replace('>', '&gt;')
+
+	def content(node, app=None, literal=False):
+		text = (node.text or '') if literal else escape(node.text or '')
+		return text + ''.join(render(child, app, literal) +
+			((child.tail or '') if literal else escape(child.tail or '')) for child in node)
+
+	def render(node, app=None, literal=False):
+		tag, attrs = node.tag, node.attrib
+		if app and attrs.get('data-app', app) != app:
+			return ''
+		if attrs.get('class') in ('choices', 'code-title', 'anchor'):
+			return ''
+		if tag == 'p' and app is None and any('data-app' in n.attrib for n in node.iter()):
+			# The docs site shows the variant whose dae/honk tab is chosen.
+			return ''.join(f'\n\n<div class="tab-variant" data-tab="{service}">\n\n{content(node, service).strip()}\n\n</div>\n\n' for service in DOCS)
+		if tag == 'pre':
+			text = ''.join(node.itertext())
+			fence = '`' * max(3, max((len(m[0]) + 1 for m in re.finditer(r'`+', text)), default=0))
+			blocks.append(f'{fence}sh\n{text}\n{fence}')
+			return f'\n\n\x00{len(blocks) - 1}\x00\n\n'
+		if tag in ('code', 'kbd'):
+			text = content(node, app, True)
+			fence = '`' * max(1, max((len(m[0]) + 1 for m in re.finditer(r'`+', text)), default=0))
+			return f'{fence} {text} {fence}' if '`' in text else f'{fence}{text}{fence}'
+		text = content(node, app, literal)
+		if tag == 'a':
+			href = attrs['href']
+			if href == './':
+				href = './index.md'
+			elif href.removeprefix('./') in {p[0] for p in PAGES}:
+				href = './' + href.removeprefix('./').replace('.html', '.md')
+			elif href.startswith('../'):
+				href = base + '/' + href[3:]
+			return f'[{text}]({href})'
+		if tag in ('h2', 'h3', 'summary'):
+			level = 2 if tag == 'h2' else 3
+			return '\n\n' + '#' * level + ' ' + text.strip() + '\n\n'
+		if tag == 'em':
+			return f'*{text}*'
+		if tag == 'tr':
+			cells = [content(cell, app).strip().replace('|', r'\|') for cell in node]
+			row = '| ' + ' | '.join(cells) + ' |\n'
+			return row + ('| ' + ' | '.join('---' for _ in cells) + ' |\n' if node[0].tag == 'th' else '')
+		if tag == 'li' and not any(child.tag == 'h3' for child in node):
+			return '- ' + text.strip() + '\n'
+		if tag == 'div' and attrs.get('class') == 'code':
+			label = attrs.get('data-app') or {'openwrt': 'OpenWrt', 'immortalwrt': 'ImmortalWrt'}.get(attrs.get('data-os'))
+			return f'\n\n**{label}**{text}' if label else text
+		if tag in ('p', 'table', 'caption', 'ul', 'details'):
+			anchor = f'<a id="{attrs["id"]}"></a>\n\n' if 'id' in attrs else ''
+			return '\n\n' + anchor + text.strip() + '\n\n'
+		return text
+
+	text = re.sub(r'\n{3,}', '\n\n', render(BodyParser(body).root)).strip()
+
+	# Adjacent labelled commands are the page's OpenWrt/ImmortalWrt and dae/honk
+	# tabs; keep them switchable as a VitePress code group.
+	labelled = r'\*\*([^*\n]+)\*\*\s*\x00(\d+)\x00'
+	def group(match):
+		tabs = re.findall(labelled, match[0])
+		for label, index in tabs:
+			blocks[int(index)] = re.sub(r'^(`+sh)', lambda m: f'{m[1]} [{label}]', blocks[int(index)])
+		return '::: code-group\n\n' + '\n\n'.join(f'\x00{index}\x00' for _, index in tabs) + '\n\n:::'
+	text = re.sub(rf'{labelled}(?:\s*{labelled})+', group, text)
+	return re.sub(r'\x00(\d+)\x00', lambda m: blocks[int(m[1])], text)
+
+
+def markdown_page(T, base, pages, name, body):
+	_, _, title, subtitle = next(p for p in PAGES if p[0] == name)
+	links = [f'[{T[label]}](./{file.replace(".html", ".md")})'
+		for file, label, _, _ in PAGES if file in pages and file != name]
+	links += [f'[{T["all_files"]}]({base}/files/)', f'[public-key.pem]({base}/public-key.pem)']
+	return f'# {T[title]}\n\n{T[subtitle]}\n\n{markdown_body(body, base)}\n\n' + ''.join(f'- {link}\n' for link in links)
+
+
 def main():
 	site, base = Path(sys.argv[1]), sys.argv[2].rstrip('/')
 	rsync = sys.argv[3].rstrip('/') if len(sys.argv) > 3 else ''
@@ -643,6 +748,8 @@ def main():
 		for name, (sections, body) in bodies.items():
 			html_text = page(lang, html_lang, T, base, bodies, name, sections, body)
 			(site / lang / name).write_text(html_text, encoding='utf-8')
+			(site / lang / name).with_suffix('.md').write_text(
+				markdown_page(T, base, bodies, name, body), encoding='utf-8')
 	shutil.copytree(HERE / 'assets', site / 'assets', dirs_exist_ok=True)
 
 
