@@ -146,3 +146,18 @@ msgstr "正在等待套件管理員重新連線…"
 
 msgid "Unable to read upgrade status. The job may still be running; reload to reconnect."
 msgstr "無法讀取升級狀態。工作可能仍在執行；請重新載入頁面以恢復連線。"
+
+msgid "Enable the doona web UI"
+msgstr "啟用 doona 網頁介面"
+
+msgid "Unchecked, honk runs without the native API and doona. Saving restarts honk."
+msgstr "取消勾選後，honk 只運行核心，不啟用 native API 與 doona。儲存時會重新啟動 honk。"
+
+msgid "Saved, the service is restarting"
+msgstr "已儲存，服務正在重新啟動"
+
+msgid "Saved, but the service could not be restarted: %s"
+msgstr "已儲存，但無法重新啟動服務：%s"
+
+msgid "Save or discard the unsaved changes of %s first"
+msgstr "請先儲存或放棄 %s 尚未儲存的編輯"

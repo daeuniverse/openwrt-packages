@@ -187,3 +187,23 @@ msgstr ""
 #: htdocs/luci-static/resources/daeuniverse/service.js
 msgid "Unable to read upgrade status. The job may still be running; reload to reconnect."
 msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Enable the doona web UI"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Unchecked, honk runs without the native API and doona. Saving restarts honk."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Saved, the service is restarting"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Saved, but the service could not be restarted: %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Save or discard the unsaved changes of %s first"
+msgstr ""
