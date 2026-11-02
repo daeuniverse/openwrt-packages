@@ -718,7 +718,76 @@ const ServiceView = view.extend({
 		return isRunning(name).then(running => {
 			document.getElementById(name + '-status')?.replaceChildren(
 				E('em', { 'class': running ? 'du-running' : 'du-stopped' }, running ? _('Running') : _('Not running')));
+			this.showServiceButtons(running);
 		});
+	},
+
+	/* One button starts or stops, a second restarts a running service */
+	showServiceButtons(running) {
+		const toggle = this.toggleButton;
+		toggle.style.display = '';
+		toggle.className = 'btn cbi-button ' + (running ? 'cbi-button-negative' : 'cbi-button-action');
+		toggle.textContent = running ? _('Stop') : _('Start');
+		toggle.onclick = () => this.handleServiceAction(running ? 'stop' : 'start');
+		this.restartButton.style.display = running ? '' : 'none';
+	},
+
+	/* Start, stop and restart act now; the boot setting (enabled) stays as it is. */
+	handleServiceAction(action) {
+		const question = {
+			stop: _('Stopping the service interrupts connections. Continue?'),
+			restart: _('Restarting the service interrupts connections for a few seconds. Continue?')
+		}[action];
+		if (!question)
+			return this.runServiceAction(action);
+
+		const title = action === 'stop' ? _('Stop') : _('Restart');
+		ui.showModal(title, [
+			E('p', {}, question),
+			E('div', { 'class': 'right' }, [
+				E('button', { 'class': 'btn', 'click': ui.hideModal }, _('Cancel')),
+				' ',
+				E('button', {
+					'class': 'btn ' + (action === 'stop' ? 'cbi-button-negative' : 'cbi-button-action'),
+					'click': () => this.runServiceAction(action)
+				}, title)
+			])
+		]);
+	},
+
+	async runServiceAction(action) {
+		const { name } = this.app;
+		const notify = (text, type) => ui.addTimeLimitedNotification(null, E('p', text), 8000, type);
+		const buttons = [ this.toggleButton, this.restartButton ];
+
+		ui.hideModal();
+		buttons.forEach(button => { button.disabled = true; });
+		try {
+			// The init script does nothing while the switch is off
+			if (action === 'start' && await callUciGet(name, 'config', 'enabled') !== '1')
+				return notify(_('Tick Enable and click Save & Apply first, the service starts only when it is enabled.'), 'warning');
+
+			await callInitAction(name, action);
+			const wanted = action !== 'stop';
+			let running = !wanted;
+			// The service takes a moment to come up or go down
+			for (let i = 0; i < 10 && running !== wanted; i++) {
+				await new Promise(resolve => setTimeout(resolve, 500));
+				running = await isRunning(name);
+			}
+			if (running === wanted)
+				notify({ start: _('The service started'), stop: _('The service stopped'),
+					restart: _('The service restarted') }[action], 'info');
+			else
+				notify(wanted ? _('The service did not start, see the Log tab.') : _('The service did not stop.'), 'warning');
+		}
+		catch (err) {
+			ui.addNotification(null, E('p', _('The service action failed: %s').format(err.message)), 'error');
+		}
+		finally {
+			buttons.forEach(button => { button.disabled = false; });
+			await this.updateStatus();
+		}
 	},
 
 	updateLog() {
@@ -752,9 +821,16 @@ const ServiceView = view.extend({
 		const s = m.section(form.NamedSection, 'config', name);
 		s.anonymous = true;
 
+		this.toggleButton = E('button', { 'type': 'button', 'style': 'display: none' });
+		this.restartButton = E('button', {
+			'class': 'btn cbi-button', 'type': 'button', 'style': 'display: none',
+			'click': () => this.handleServiceAction('restart')
+		}, _('Restart'));
 		let o = s.option(form.DummyValue, '_status', _('Status'));
-		o.rawhtml = true;
-		o.cfgvalue = () => '<span id="' + name + '-status"><em>…</em></span>';
+		o.renderWidget = () => E('div', {}, [
+			E('span', { 'id': name + '-status' }, E('em', {}, '…')),
+			' ', this.toggleButton, ' ', this.restartButton
+		]);
 
 		this.packageStatus = E('div', { 'aria-live': 'polite' });
 		this.checkButton = E('button', {
@@ -769,7 +845,7 @@ const ServiceView = view.extend({
 		]);
 
 		o = s.option(form.Flag, 'enabled', _('Enable'),
-			_('dae and honk cannot run at the same time; enabling %s turns %s off.').format(name, other));
+			_('Starts the service now and at every boot. dae and honk cannot run at the same time; enabling %s turns %s off.').format(name, other));
 		o.rmempty = false;
 		// Both changes go out in one apply, and each init script follows its own
 		// switch. A missing package has no enabled option and is left alone.

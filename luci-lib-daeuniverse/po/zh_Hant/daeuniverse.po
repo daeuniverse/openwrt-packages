@@ -18,8 +18,8 @@ msgstr "設定有誤，服務未重新載入"
 msgid "Unable to read %s: %s"
 msgstr "無法讀取 %s：%s"
 
-msgid "dae and honk cannot run at the same time; enabling %s turns %s off."
-msgstr "dae 和 honk 不能同時執行，啟用 %s 會關閉 %s。"
+msgid "Starts the service now and at every boot. dae and honk cannot run at the same time; enabling %s turns %s off."
+msgstr "啟用後立即啟動服務，並在每次開機時啟動。dae 和 honk 不能同時執行，啟用 %s 會關閉 %s。"
 
 msgid "Edit the configuration file and every file it includes; each tab is saved to its own file."
 msgstr "編輯設定檔及其 include 的所有檔案，每個分頁儲存到各自的檔案。"
@@ -161,3 +161,39 @@ msgstr "已儲存，但無法重新啟動服務：%s"
 
 msgid "Save or discard the unsaved changes of %s first"
 msgstr "請先儲存或放棄 %s 尚未儲存的編輯"
+
+msgid "Start"
+msgstr "啟動"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Restart"
+msgstr "重新啟動"
+
+msgid "Stopping the service interrupts connections. Continue?"
+msgstr "停止服務會中斷連線。是否繼續？"
+
+msgid "Restarting the service interrupts connections for a few seconds. Continue?"
+msgstr "重新啟動服務會使連線中斷數秒。是否繼續？"
+
+msgid "Tick Enable and click Save & Apply first, the service starts only when it is enabled."
+msgstr "請先勾選「啟用」並點擊「儲存並套用」，服務只有在啟用後才會啟動。"
+
+msgid "The service started"
+msgstr "服務已啟動"
+
+msgid "The service stopped"
+msgstr "服務已停止"
+
+msgid "The service restarted"
+msgstr "服務已重新啟動"
+
+msgid "The service did not start, see the Log tab."
+msgstr "服務未能啟動，請查看「日誌」分頁。"
+
+msgid "The service did not stop."
+msgstr "服務未能停止。"
+
+msgid "The service action failed: %s"
+msgstr "服務操作失敗：%s"
