@@ -86,7 +86,7 @@ msgid "Unable to save: %s"
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js:447
-msgid "dae and honk cannot run at the same time; enabling %s turns %s off."
+msgid "Starts the service now and at every boot. dae and honk cannot run at the same time; enabling %s turns %s off."
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js:483
@@ -206,4 +206,52 @@ msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js
 msgid "Save or discard the unsaved changes of %s first"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Start"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Stop"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Restart"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Stopping the service interrupts connections. Continue?"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Restarting the service interrupts connections for a few seconds. Continue?"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Tick Enable and click Save & Apply first, the service starts only when it is enabled."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "The service started"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "The service stopped"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "The service restarted"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "The service did not start, see the Log tab."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "The service did not stop."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "The service action failed: %s"
 msgstr ""
