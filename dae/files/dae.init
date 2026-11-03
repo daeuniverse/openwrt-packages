@@ -1,4 +1,8 @@
 #!/bin/sh /etc/rc.common
+# These come first: rpcd's rc list reads START and STOP only near the top of the file.
+USE_PROCD=1
+START=99
+STOP=01
 #
 # OpenWrt procd init script for dae.
 #
@@ -12,10 +16,6 @@
 #
 # dae runs as root because its eBPF datapath attaches to the LAN/WAN
 # interfaces and creates the daens network namespace.
-
-USE_PROCD=1
-START=99
-STOP=01
 
 CONF="dae"
 PROG="/usr/bin/dae"
