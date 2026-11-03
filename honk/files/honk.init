@@ -1,4 +1,8 @@
 #!/bin/sh /etc/rc.common
+# These come first: rpcd's rc list reads START and STOP only near the top of the file.
+USE_PROCD=1
+START=99
+STOP=01
 #
 # OpenWrt procd init script for honk (honk-core).
 #
@@ -12,10 +16,6 @@
 #
 # honk-core runs as root: its eBPF datapath creates the dae0 link pair and the
 # daens network namespace, attaches TC programs and may open NFQUEUE.
-
-USE_PROCD=1
-START=99
-STOP=01
 
 CONF="honk"
 PROG="/usr/bin/honk-core"
