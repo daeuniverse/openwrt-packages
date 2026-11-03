@@ -30,7 +30,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dae
 PKG_VERSION:=$(if $(DAE_VERSION),$(DAE_VERSION),2.1.1)
-PKG_RELEASE:=4
+PKG_RELEASE:=5
 
 PKG_LICENSE:=AGPL-3.0-only
 PKG_LICENSE_FILES:=LICENSE
@@ -90,6 +90,18 @@ endef
 define Package/dae/conffiles
 /etc/config/dae
 /etc/dae/config.dae
+endef
+
+# apk replaces a conffile the user never edited with the packaged one, which
+# has no option enabled, so the boot setting of earlier versions is saved here
+# for files/dae.uci-defaults. The apk pre-install and pre-upgrade scripts are
+# made from this (pre-upgrade without the shebang line, after PKG_UPGRADE=1).
+define Package/dae/preinst
+#!/bin/sh
+[ -z "$${IPKG_INSTROOT}" ] || exit 0
+enabled="$$(uci -q get dae.config.enabled)"
+[ -z "$$enabled" ] || echo "$$enabled" > /tmp/dae-autostart
+exit 0
 endef
 
 # With apk this runs after default_postinst, in post-install and, sourced, in

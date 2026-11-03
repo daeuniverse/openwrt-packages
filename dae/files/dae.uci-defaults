@@ -5,6 +5,12 @@
 # build host, where /etc/init.d would be the host's.
 if [ -z "$IPKG_INSTROOT" ]; then
 	enabled="$(uci -q get dae.config.enabled)"
+	# the preinst script of the package saved the old value before apk replaced
+	# an unedited /etc/config/dae, which no longer has the option
+	if [ -z "$enabled" ] && [ -f /tmp/dae-autostart ]; then
+		enabled="$(cat /tmp/dae-autostart)"
+	fi
+	rm -f /tmp/dae-autostart
 	if [ -n "$enabled" ]; then
 		case "$enabled" in
 		1|on|true|yes|enabled) /etc/init.d/dae enable ;;
