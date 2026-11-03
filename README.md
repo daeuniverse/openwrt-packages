@@ -201,34 +201,43 @@ checksums instead.
 
 ## OpenWrt integration
 
-Both services start disabled. Set `option enabled '1'` before starting one.
+Both services start disabled and stopped after a fresh install.
 The init scripts are [`dae/files/dae.init`](dae/files/dae.init) and
-[`honk/files/honk.init`](honk/files/honk.init). On the router, edit
-`/etc/config/dae` or `/etc/config/honk`, then start the chosen service:
+[`honk/files/honk.init`](honk/files/honk.init). On the router, adapt the
+configuration file in `/etc/dae` or `/etc/honk`, then enable and start the
+chosen service:
 
 ```sh
 # /etc/config/dae or /etc/config/honk
 config dae 'config'            # config honk 'config'
-	option enabled '0'
 	option config_file '/etc/dae/config.dae'   # or /etc/honk/config.dae
 
 /etc/init.d/dae enable && /etc/init.d/dae start
 /etc/init.d/honk enable && /etc/init.d/honk start
 ```
 
+`enable` makes the service start at boot and `disable` stops that; neither
+changes whether it runs now.
+
 The init scripts follow procd conventions:
 
-* `start_service` does nothing while `enabled` is `0`.
+* Starting at boot is the `rc.d` link that `enable` and `disable` manage.
+  `start`, `stop` and `restart` work whatever it says. When apk installs a
+  package it enables and starts the init script; a fresh install is turned back
+  off, and an upgrade restarts the service only if it was enabled. Earlier
+  versions kept this setting in the UCI option `enabled`; the upgrade applies
+  it to the link and deletes the option.
 * dae and honk cannot run together: both create the `dae0` link pair and
-  `daens` namespace and attach to the same interfaces. Enabling one in LuCI
-  disables the other in the same Save & Apply. If you enable both by hand,
-  the second service refuses to start and logs the reason.
+  `daens` namespace and attach to the same interfaces. In LuCI, **Start** stops
+  the other service first, and turning on **Start at boot** turns it off for
+  the other. A service started by hand while the other runs refuses to start
+  and logs the reason.
 * `dae` runs `dae validate -c <config_file>` before every start.
   If validation fails, including for missing geo assets, the init script logs
   the error and does not start dae. Changing `config_file` stops the old
   instance before validation.
-* `reload` stops a disabled service, starts an enabled but stopped service,
-  or restarts one whose `config_file` changed. Otherwise, it sends a running dae `SIGUSR1`
+* `reload` leaves a stopped service stopped, or restarts a running one whose
+  `config_file` changed. Otherwise, it sends a running dae `SIGUSR1`
   (the signal `dae reload` sends; dae ignores `SIGHUP`) or runs
   `honk-core reload`. Established connections survive the configuration change.
   Both services respawn after a crash and send stdout/stderr to syslog
@@ -284,12 +293,13 @@ and engine problems to [honk](https://github.com/daeuniverse/honk/issues).
 honk** to LuCI. They share the page from `luci-lib-daeuniverse`, with three tabs:
 
 * **Service status**: shows whether the service is running, its installed package
-  version, enabled switch and configuration file. The configuration editor can
-  only read and write files under `/etc/dae` or `/etc/honk`. Save & Apply starts
-  or stops the service through its init script.
+  version and configuration file. Start, Stop and Restart act at once. The
+  **Start at boot** switch runs `enable` or `disable` of the init script at once
+  and needs no Save & Apply. The configuration editor can only read and write
+  files under `/etc/dae` or `/etc/honk`.
 * **Configuration**: edits the main configuration file and files loaded with
   `include`, with syntax highlighting. Each tab saves to its own file.
-  For an enabled service, saving reloads it or starts it if stopped.
+  For a running service, saving reloads it; a stopped one stays stopped.
   dae validates the configuration first.
 * **Log**: shows the service's lines from `logread`.
 
@@ -629,8 +639,11 @@ The `dae`/`honk` packages install upstream license text under
   `vmlinux-btf-builtin` satisfies the dependency on kernels with BTF
   (ImmortalWrt).
 * dae reloads with `SIGUSR1` instead of the ignored `SIGHUP`.
-  `reload` follows `enabled` and `config_file`. Enabling dae or honk disables
-  the other.
+  `reload` follows `config_file`.
+* Starting at boot is the init script's `rc.d` link, switched by `enable` and
+  `disable` or by **Start at boot** in LuCI, instead of the UCI option
+  `enabled`. A fresh install stays disabled; an upgrade moves the old option to
+  the link. dae and honk never run together: **Start** stops the other service.
 * honk no longer stacks a new bpffs mount on every start (BusyBox has no
   `mountpoint`).
 

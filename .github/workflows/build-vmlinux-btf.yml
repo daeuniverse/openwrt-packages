@@ -1507,7 +1507,7 @@ jobs:
 
           Both packages install an OpenWrt procd init script and a UCI
           configuration (/etc/config/dae, /etc/config/honk); the service is
-          disabled until "option enabled '1'" is set. honk is built with the
+          disabled until "/etc/init.d/<service> enable" is run. honk is built with the
           full feature set and embeds the doona UI (native-ui): configure
           experimental.native_api with "ui: embedded" to serve it.
 
