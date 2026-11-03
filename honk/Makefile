@@ -23,7 +23,9 @@
 # The package also installs an OpenWrt procd init script (files/honk.init), its
 # UCI configuration (files/honk.config) and a minimal /etc/honk/config.dae with
 # the embedded UI enabled on loopback. The service is disabled by default;
-# enable it in /etc/config/honk after adding nodes and routing rules.
+# run /etc/init.d/honk enable and start it after adding nodes and routing
+# rules. files/honk.uci-defaults moves the boot setting of earlier versions
+# (UCI option enabled) to that rc.d link.
 #
 # This file is free software, licensed under the GNU General Public License v3
 # or later.
@@ -37,7 +39,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=honk
 PKG_VERSION:=$(if $(HONK_VERSION),$(HONK_VERSION),0.1.0_beta4)
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 
 # Upstream release the sources are checked out from. honk's build script derives
 # the version it embeds from the tag in GITHUB_REF, so build.sh exports it.
@@ -101,6 +103,9 @@ define Package/honk/conffiles
 /etc/honk/config.dae
 endef
 
+# With apk this runs after default_postinst, in post-install and, sourced, in
+# post-upgrade. The restart picks up a new binary of an enabled service; the
+# init script's package guard keeps it from starting a disabled one.
 define Package/honk/postinst
 #!/bin/sh
 [ -z "$${IPKG_INSTROOT}" ] || exit 0
@@ -117,6 +122,8 @@ define Package/honk/install
 	$(INSTALL_BIN) $(PKG_DIR)/files/honk.init $(1)/etc/init.d/honk
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) $(PKG_DIR)/files/honk.config $(1)/etc/config/honk
+	$(INSTALL_DIR) $(1)/etc/uci-defaults
+	$(INSTALL_BIN) $(PKG_DIR)/files/honk.uci-defaults $(1)/etc/uci-defaults/90-honk-autostart
 	$(INSTALL_DIR) $(1)/etc/honk
 	$(INSTALL_CONF) $(PKG_DIR)/files/config.dae $(1)/etc/honk/config.dae
 	$(INSTALL_DIR) $(1)/lib/upgrade/keep.d

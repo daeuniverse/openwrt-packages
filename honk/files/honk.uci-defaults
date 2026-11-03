@@ -1,0 +1,20 @@
+# Moves the boot setting of honk from the UCI option 'enabled' of earlier
+# versions to the rc.d link of its init script. Run once by the package scripts
+# (default_postinst sources it in a subshell, pkgname set) or on the first boot
+# of a firmware image that contains the package (pkgname empty). Never on the
+# build host, where /etc/init.d would be the host's.
+if [ -z "$IPKG_INSTROOT" ]; then
+	enabled="$(uci -q get honk.config.enabled)"
+	if [ -n "$enabled" ]; then
+		case "$enabled" in
+		1|on|true|yes|enabled) /etc/init.d/honk enable ;;
+		*) /etc/init.d/honk disable ;;
+		esac
+		uci -q delete honk.config.enabled
+		uci commit honk
+	elif [ -z "$pkgname" ]; then
+		# an image build enables every init script, but a new honk stays off
+		# until the user turns it on
+		/etc/init.d/honk disable
+	fi
+fi

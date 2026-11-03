@@ -13,8 +13,10 @@
 #
 # The package also installs an OpenWrt procd init script (files/dae.init), its
 # UCI configuration (files/dae.config) and the upstream example.dae as the
-# initial /etc/dae/config.dae. The service is disabled by default; enable it in
-# /etc/config/dae after adapting the configuration to the device.
+# initial /etc/dae/config.dae. The service is disabled by default; run
+# /etc/init.d/dae enable and start it after adapting the configuration to the
+# device. files/dae.uci-defaults moves the boot setting of earlier versions
+# (UCI option enabled) to that rc.d link.
 #
 # This file is free software, licensed under the GNU General Public License v3
 # or later.
@@ -28,7 +30,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dae
 PKG_VERSION:=$(if $(DAE_VERSION),$(DAE_VERSION),2.1.1)
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 
 PKG_LICENSE:=AGPL-3.0-only
 PKG_LICENSE_FILES:=LICENSE
@@ -90,6 +92,9 @@ define Package/dae/conffiles
 /etc/dae/config.dae
 endef
 
+# With apk this runs after default_postinst, in post-install and, sourced, in
+# post-upgrade. The restart picks up a new binary of an enabled service; the
+# init script's package guard keeps it from starting a disabled one.
 define Package/dae/postinst
 #!/bin/sh
 [ -z "$${IPKG_INSTROOT}" ] || exit 0
@@ -106,6 +111,8 @@ define Package/dae/install
 	$(INSTALL_BIN) $(PKG_DIR)/files/dae.init $(1)/etc/init.d/dae
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) $(PKG_DIR)/files/dae.config $(1)/etc/config/dae
+	$(INSTALL_DIR) $(1)/etc/uci-defaults
+	$(INSTALL_BIN) $(PKG_DIR)/files/dae.uci-defaults $(1)/etc/uci-defaults/90-dae-autostart
 	$(INSTALL_DIR) $(1)/etc/dae
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/example.dae $(1)/etc/dae/config.dae
 	# v2ray-geoip/geosite install the files under /usr/share/v2ray. dae searches
