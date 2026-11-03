@@ -226,7 +226,8 @@ The init scripts follow procd conventions:
   package it enables and starts the init script; a fresh install is turned back
   off, and an upgrade restarts the service only if it was enabled. Earlier
   versions kept this setting in the UCI option `enabled`; the upgrade applies
-  it to the link and deletes the option.
+  it to the link and deletes the option, also when apk replaced the unedited
+  `/etc/config` file (the package's pre-install script saves the value first).
 * dae and honk cannot run together: both create the `dae0` link pair and
   `daens` namespace and attach to the same interfaces. In LuCI, **Start** stops
   the other service first, and turning on **Start at boot** turns it off for

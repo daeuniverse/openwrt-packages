@@ -39,7 +39,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=honk
 PKG_VERSION:=$(if $(HONK_VERSION),$(HONK_VERSION),0.1.0_beta4)
-PKG_RELEASE:=4
+PKG_RELEASE:=5
 
 # Upstream release the sources are checked out from. honk's build script derives
 # the version it embeds from the tag in GITHUB_REF, so build.sh exports it.
@@ -101,6 +101,18 @@ endef
 define Package/honk/conffiles
 /etc/config/honk
 /etc/honk/config.dae
+endef
+
+# apk replaces a conffile the user never edited with the packaged one, which
+# has no option enabled, so the boot setting of earlier versions is saved here
+# for files/honk.uci-defaults. The apk pre-install and pre-upgrade scripts are
+# made from this (pre-upgrade without the shebang line, after PKG_UPGRADE=1).
+define Package/honk/preinst
+#!/bin/sh
+[ -z "$${IPKG_INSTROOT}" ] || exit 0
+enabled="$$(uci -q get honk.config.enabled)"
+[ -z "$$enabled" ] || echo "$$enabled" > /tmp/honk-autostart
+exit 0
 endef
 
 # With apk this runs after default_postinst, in post-install and, sourced, in
