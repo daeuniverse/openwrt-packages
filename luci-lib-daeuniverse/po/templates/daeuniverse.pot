@@ -21,10 +21,6 @@ msgstr ""
 msgid "Edit the configuration file and every file it includes; each tab is saved to its own file."
 msgstr ""
 
-#: htdocs/luci-static/resources/daeuniverse/service.js:446
-msgid "Enable"
-msgstr ""
-
 #: htdocs/luci-static/resources/daeuniverse/service.js:460
 msgid "Log"
 msgstr ""
@@ -83,10 +79,6 @@ msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js:374
 msgid "Unable to save: %s"
-msgstr ""
-
-#: htdocs/luci-static/resources/daeuniverse/service.js:447
-msgid "Starts the service now and at every boot. dae and honk cannot run at the same time; enabling %s turns %s off."
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js:483
@@ -229,10 +221,6 @@ msgid "Restarting the service interrupts connections for a few seconds. Continue
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js
-msgid "Tick Enable and click Save & Apply first, the service starts only when it is enabled."
-msgstr ""
-
-#: htdocs/luci-static/resources/daeuniverse/service.js
 msgid "The service started"
 msgstr ""
 
@@ -254,4 +242,36 @@ msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js
 msgid "The service action failed: %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Start at boot"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Starts automatically when the router boots; does not change whether it is running now."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Start at boot is on"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Start at boot is off"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Start at boot is on; %s no longer starts at boot, because dae and honk cannot run at the same time."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Unable to change Start at boot: %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "%s was stopped first, because dae and honk cannot run at the same time."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "%s did not stop, the service was not started."
 msgstr ""
