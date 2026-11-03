@@ -5,8 +5,10 @@
 # UCI (/etc/config/honk):
 #
 #   config honk 'config'
-#       option enabled '0'
 #       option config_file '/etc/honk/config.dae'
+#
+# Starting at boot is the rc.d link, not a UCI option: /etc/init.d/honk enable
+# or disable. Start, stop and restart always work.
 #
 # honk-core runs as root: its eBPF datapath creates the dae0 link pair and the
 # daens network namespace, attaches TC programs and may open NFQUEUE.
@@ -21,20 +23,26 @@ PROG="/usr/bin/honk-core"
 start_service() {
 	config_load "$CONF"
 
-	local enabled
-	config_get_bool enabled "config" "enabled" 0
-	[ "$enabled" -eq 1 ] || return 1
+	# The package scripts of apk start every init script their package ships: a
+	# fresh install after enabling it (it stays off until the user turns it on),
+	# an upgrade only if it was on. They export pkgname, and PKG_UPGRADE=1 on an
+	# upgrade; a start by hand sets neither.
+	if [ "$pkgname" = "$CONF" ]; then
+		if [ "$PKG_UPGRADE" != 1 ]; then
+			disable
+			return 1
+		fi
+		enabled || return 1
+	fi
 
 	# dae creates the same dae0 link pair and daens namespace and hooks the
-	# same interfaces, so the two never run at the same time. LuCI turns
-	# dae off when honk is turned on there; with both turned on by hand,
-	# the one started second refuses. A dae that is turned off is only
-	# on its way out (it takes a moment to detach), so it does not block;
-	# should it still hold the link pair, procd restarts honk shortly after.
-	if [ "$(uci -q get dae.config.enabled)" = 1 ] &&
-		ubus call service list '{"name":"dae"}' 2>/dev/null |
+	# same interfaces, so the two never run at the same time. LuCI stops dae
+	# before it starts honk; started any other way while dae runs, honk
+	# refuses. A dae that is stopping can still hold the link pair for a
+	# moment; procd restarts honk shortly after.
+	if ubus call service list '{"name":"dae"}' 2>/dev/null |
 		jsonfilter -q -e '@.dae.instances[*].running' | grep -q true; then
-		logger -t honk "dae is running; honk and dae cannot run at the same time, disable dae first"
+		logger -t honk "dae is running; honk and dae cannot run at the same time, stop dae first"
 		return 1
 	fi
 
@@ -85,19 +93,18 @@ start_service() {
 }
 
 reload_service() {
-	# Also the reload trigger of /etc/config/honk. An instance that runs with the
-	# configured file only rereads it. Everything else goes through start,
-	# which procd turns into a start, a restart when the command line changed
-	# (another configuration file), or a stop when start_service adds no
-	# instance (turned off, or the other service runs). Unlike stop, that keeps
-	# the service and its triggers registered, so turning it on again works.
+	# Also the reload trigger of /etc/config/honk. A stopped service stays
+	# stopped. An instance that runs with the configured file only rereads it.
+	# Otherwise it goes through start, which procd turns into a restart (another
+	# configuration file) or a stop when start_service adds no instance (the
+	# file is missing or fails validation). Unlike stop, that keeps the service
+	# and its triggers registered, so starting it again works.
 	config_load "$CONF"
 
-	local enabled config_file
-	config_get_bool enabled "config" "enabled" 0
+	local config_file
 	config_get config_file "config" "config_file" "/etc/honk/config.dae"
-	if [ "$enabled" -eq 1 ] && procd_running "$CONF" "$CONF" &&
-		ubus call service list "{\"name\":\"$CONF\"}" 2>/dev/null |
+	procd_running "$CONF" "$CONF" || return 0
+	if ubus call service list "{\"name\":\"$CONF\"}" 2>/dev/null |
 		jsonfilter -q -e "@.$CONF.instances.$CONF.command[*]" | grep -qxF -- "$config_file"; then
 		# `honk-core reload` reads the instance lock and sends SIGHUP, so a
 		# stale instance is reported instead of signalling an unrelated PID.
