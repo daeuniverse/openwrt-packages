@@ -1,10 +1,10 @@
 #
 # OpenWrt package: luci-app-dae
 #
-# LuCI page for dae, built on luci-lib-daeuniverse: the UCI switch, an editor
-# with syntax highlighting for /etc/dae/config.dae and every file it includes,
-# and the service log. Needs the luci feed in the SDK, as luci.mk comes from
-# there.
+# LuCI page for dae, built on luci-lib-daeuniverse: the Start at boot switch, an
+# editor with syntax highlighting for /etc/dae/config.dae and every file it
+# includes, and the service log. Needs the luci feed in the SDK, as luci.mk
+# comes from there.
 #
 # This file is free software, licensed under the GNU General Public License v3
 # or later.

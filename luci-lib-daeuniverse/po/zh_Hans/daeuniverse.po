@@ -18,14 +18,8 @@ msgstr "配置有误，服务未重新加载"
 msgid "Unable to read %s: %s"
 msgstr "无法读取 %s：%s"
 
-msgid "Starts the service now and at every boot. dae and honk cannot run at the same time; enabling %s turns %s off."
-msgstr "启用后立即启动服务，并在每次开机时启动。dae 和 honk 不能同时运行，启用 %s 会关闭 %s。"
-
 msgid "Edit the configuration file and every file it includes; each tab is saved to its own file."
 msgstr "编辑配置文件及其 include 的所有文件，每个标签页保存到各自的文件。"
-
-msgid "Enable"
-msgstr "启用"
 
 msgid "Log"
 msgstr "日志"
@@ -177,9 +171,6 @@ msgstr "停止服务会中断连接。是否继续？"
 msgid "Restarting the service interrupts connections for a few seconds. Continue?"
 msgstr "重启服务会使连接中断几秒。是否继续？"
 
-msgid "Tick Enable and click Save & Apply first, the service starts only when it is enabled."
-msgstr "请先勾选“启用”并点击“保存并应用”，服务只有在启用后才会启动。"
-
 msgid "The service started"
 msgstr "服务已启动"
 
@@ -197,3 +188,27 @@ msgstr "服务未能停止。"
 
 msgid "The service action failed: %s"
 msgstr "服务操作失败：%s"
+
+msgid "Start at boot"
+msgstr "开机自动启动"
+
+msgid "Starts automatically when the router boots; does not change whether it is running now."
+msgstr "路由器开机时自动启动；不影响当前是否正在运行。"
+
+msgid "Start at boot is on"
+msgstr "已开启开机自动启动"
+
+msgid "Start at boot is off"
+msgstr "已关闭开机自动启动"
+
+msgid "Start at boot is on; %s no longer starts at boot, because dae and honk cannot run at the same time."
+msgstr "已开启开机自动启动。dae 和 honk 不能同时运行，%s 不再开机自动启动。"
+
+msgid "Unable to change Start at boot: %s"
+msgstr "无法更改开机自动启动：%s"
+
+msgid "%s was stopped first, because dae and honk cannot run at the same time."
+msgstr "dae 和 honk 不能同时运行，已先停止 %s。"
+
+msgid "%s did not stop, the service was not started."
+msgstr "%s 未能停止，服务未启动。"

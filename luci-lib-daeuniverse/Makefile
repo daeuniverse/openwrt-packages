@@ -2,7 +2,7 @@
 # OpenWrt package: luci-lib-daeuniverse
 #
 # The LuCI page luci-app-dae and luci-app-honk share: service status with the
-# UCI switch, an editor with syntax highlighting for the configuration file and
+# Start at boot switch, an editor with syntax highlighting for the configuration file and
 # every file it includes (one tab per file, each saved to its own path), and the
 # service log. The apps only describe their service. Needs the luci feed in the
 # SDK, as luci.mk comes from there.
