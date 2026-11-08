@@ -29,6 +29,12 @@
  *                  read(files) is the state, path(files) the file to change
  *                  and write(text, on) the new text of that file. Saving
  *                  writes the file and restarts a running service.
+ *   storeFlag      optional { dataDir, problems }: a checkbox for the UCI
+ *                  option `store` ('db' or 'file'). dataDir is the default
+ *                  of the UCI option data_dir, problems(files, dataDir) the
+ *                  messages that stop the configuration from being kept in a
+ *                  database. Turning it on is refused while there are any;
+ *                  the init script restarts the service when it is applied.
  */
 
 const callServiceList = rpc.declare({
@@ -917,7 +923,7 @@ const ServiceView = view.extend({
 			return (normalize(value) === value && value.startsWith(dir + '/')) || _('Must be a file in %s').format(dir);
 		};
 
-		const { webUi, webUiFlag } = this.app;
+		const { webUi, webUiFlag, storeFlag } = this.app;
 		if (webUiFlag) {
 			this.webUiState = webUiFlag.read(files);
 			const flag = s.option(form.Flag, '_web_ui_enabled', _('Enable the doona web UI'),
@@ -930,6 +936,24 @@ const ServiceView = view.extend({
 			// value whatever its state, so the form value is read instead.
 			flag.validate = section_id => (flag.formvalue(section_id) === '1') === this.webUiState
 				|| this.webUiFlagConflict() || true;
+		}
+
+		if (storeFlag) {
+			const dataDir = uci.get(name, 'config', 'data_dir') || storeFlag.dataDir;
+			const flag = s.option(form.Flag, 'store', _('Keep the configuration in a database'),
+				_('Lets doona import the configuration and keep a revision history. honk then reads the database, not the configuration file. Saving restarts honk.'));
+			flag.enabled = 'db';
+			flag.disabled = 'file';
+			flag.default = 'file';
+			flag.rmempty = false;
+			// Once the database holds the configuration, the files are not read again
+			flag.validate = section_id => {
+				if (flag.formvalue(section_id) !== 'db' || flag.cfgvalue(section_id) === 'db')
+					return true;
+				return this.webUiFlagConflict()
+					|| storeFlag.problems(this.files, dataDir).join(' ')
+					|| true;
+			};
 		}
 
 		if (webUi) {
