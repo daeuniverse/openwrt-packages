@@ -3,14 +3,14 @@
 # package Makefile, so every input arrives as an environment variable:
 #
 #   HONK_SRC            build directory holding the checked out sources
-#   HONK_VERSION        package version (0.1.0_beta5)
+#   HONK_VERSION        package version (0.1.0_beta6)
 #   HONK_GIT_TAG        upstream release tag the sources come from
-#                       (v0.1.0-beta.5); honk's build script embeds this
+#                       (v0.1.0-beta.6); honk's build script embeds this
 #   HONK_ARCH_PACKAGES  arch_packages of the target, e.g. aarch64_cortex-a76
 #   OPENWRT_CC          OpenWrt cross gcc (TARGET_CROSS + gcc)
 #   OPENWRT_CXX         OpenWrt cross g++
 #
-# The binary has the full feature set: the crate defaults (clash-api, mimalloc,
+# The binary has the full feature set: the crate defaults (clash-api, jemalloc,
 # rprx) plus ebpf and native-ui. native-ui embeds the doona dashboard pinned in
 # .github/ci/pins.env; ci/fetch-doona.sh downloads that release archive and
 # verifies its SHA-256, so the frontend is never compiled here.
