@@ -101,6 +101,26 @@ msgstr ""
 msgid "honk only accepts IP addresses; open LuCI by IP address."
 msgstr ""
 
+#: ../luci-app-honk/htdocs/luci-static/resources/honk/nativeapi.js
+msgid "Set experimental.native_api.enabled to true."
+msgstr ""
+
+#: ../luci-app-honk/htdocs/luci-static/resources/honk/nativeapi.js
+msgid "Set experimental.native_api.config_write to true."
+msgstr ""
+
+#: ../luci-app-honk/htdocs/luci-static/resources/honk/nativeapi.js
+msgid "Set experimental.native_api.password_auth to true or set experimental.native_api.secret."
+msgstr ""
+
+#: ../luci-app-honk/htdocs/luci-static/resources/honk/nativeapi.js
+msgid "Set global.data_dir to %s."
+msgstr ""
+
+#: ../luci-app-honk/htdocs/luci-static/resources/honk/nativeapi.js
+msgid "Remove experimental.clash_api.external_controller."
+msgstr ""
+
 #: htdocs/luci-static/resources/daeuniverse/service.js
 msgid "Version"
 msgstr ""
@@ -186,6 +206,14 @@ msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js
 msgid "Unchecked, honk runs without the native API and doona. Saving restarts honk."
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Keep the configuration in a database"
+msgstr ""
+
+#: htdocs/luci-static/resources/daeuniverse/service.js
+msgid "Lets doona import the configuration and keep a revision history. honk then reads the database, not the configuration file. Saving restarts honk."
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js

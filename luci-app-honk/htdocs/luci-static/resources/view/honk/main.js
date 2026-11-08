@@ -87,6 +87,12 @@ return service.View.extend({
 			path: files => nativeApi.targetPath(files),
 			write: (text, on) => nativeApi.apply(text, on)
 		},
+		// honk-core takes the store as a command-line flag, so it is a UCI option
+		// of the init script, not a line of the configuration.
+		storeFlag: {
+			dataDir: '/etc/honk/data',
+			problems: (files, dataDir) => nativeApi.storeProblems(files, dataDir)
+		},
 		// procd forwards stdout as "honk-core[pid]:", the init script logs as "honk:".
 		logIdent: /^honk(-core)?(\[\d+\])?: /
 	}

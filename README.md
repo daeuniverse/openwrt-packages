@@ -238,11 +238,20 @@ The init scripts follow procd conventions:
   the error and does not start dae. Changing `config_file` stops the old
   instance before validation.
 * `reload` leaves a stopped service stopped, or restarts a running one whose
-  `config_file` changed. Otherwise, it sends a running dae `SIGUSR1`
-  (the signal `dae reload` sends; dae ignores `SIGHUP`) or runs
-  `honk-core reload`. Established connections survive the configuration change.
+  `config_file` changed (for honk also `store` or `data_dir`). Otherwise, it
+  sends a running dae `SIGUSR1` (the signal `dae reload` sends; dae ignores
+  `SIGHUP`) or runs `honk-core reload`. Established connections survive the configuration change.
   Both services respawn after a crash and send stdout/stderr to syslog
   (`logread`), so they need no log file rotation.
+* honk keeps its configuration in the file by default. `option store 'db'` in
+  `/etc/config/honk` (or **Keep the configuration in a database** in LuCI)
+  starts `honk-core --store db --data-dir <data_dir>`: honk reads the
+  configuration file once, then doona edits a database in `data_dir`
+  (default `/etc/honk/data`, which sysupgrade keeps) and keeps a revision
+  history. honk refuses to start in this mode unless the native API has
+  `enabled`, `config_write` and a credential, `global.data_dir` equals
+  `data_dir`, and `experimental.clash_api.external_controller` is empty; the
+  shipped configuration sets that last key, so remove it first.
 * The honk script mounts `bpffs` on `/sys/fs/bpf` if needed.
   aya pins its maps there, but OpenWrt does not mount it automatically.
 

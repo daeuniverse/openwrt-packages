@@ -10,6 +10,14 @@ STOP=01
 #
 #   config honk 'config'
 #       option config_file '/etc/honk/config.dae'
+#       option store 'file'
+#       option data_dir '/etc/honk/data'
+#
+# store 'db' starts honk-core with --store db --data-dir <data_dir>: the
+# configuration lives in a database below data_dir (doona edits it and keeps a
+# revision history) and config_file is only read once, to import it. honk
+# refuses that unless global.data_dir equals data_dir and clash_api has no
+# external_controller. /etc/honk/data is the directory sysupgrade keeps.
 #
 # Starting at boot is the rc.d link, not a UCI option: /etc/init.d/honk enable
 # or disable. Start, stop and restart always work.
@@ -19,6 +27,20 @@ STOP=01
 
 CONF="honk"
 PROG="/usr/bin/honk-core"
+
+# Reads store and data_dir into the caller's locals. honk-core only knows
+# file and db; anything else is treated as file.
+read_store() {
+	config_get store "config" "store" "file"
+	config_get data_dir "config" "data_dir" "/etc/honk/data"
+	case "$store" in
+	file|db) ;;
+	*)
+		logger -t honk "unknown store '$store' (use file or db); using file"
+		store="file"
+		;;
+	esac
+}
 
 start_service() {
 	config_load "$CONF"
@@ -46,8 +68,9 @@ start_service() {
 		return 1
 	fi
 
-	local config_file
+	local config_file store data_dir
 	config_get config_file "config" "config_file" "/etc/honk/config.dae"
+	read_store
 
 	if [ ! -r "$config_file" ]; then
 		logger -t honk "configuration file '$config_file' is missing or unreadable"
@@ -83,6 +106,7 @@ start_service() {
 
 	procd_open_instance "$CONF"
 	procd_set_param command "$PROG" --config "$config_file"
+	[ "$store" = "db" ] && procd_append_param command --store db --data-dir "$data_dir"
 	# honk budgets its flow admission from RLIMIT_NOFILE (it raises the soft
 	# limit to the hard limit); keep the hard limit high enough for a gateway.
 	procd_set_param limits core="unlimited" nofile="1048576 1048576"
@@ -94,18 +118,30 @@ start_service() {
 
 reload_service() {
 	# Also the reload trigger of /etc/config/honk. A stopped service stays
-	# stopped. An instance that runs with the configured file only rereads it.
-	# Otherwise it goes through start, which procd turns into a restart (another
-	# configuration file) or a stop when start_service adds no instance (the
-	# file is missing or fails validation). Unlike stop, that keeps the service
-	# and its triggers registered, so starting it again works.
+	# stopped. An instance that runs with the configured command only rereads
+	# its file. Otherwise it goes through start, which procd turns into a
+	# restart (another configuration file, store or data_dir: the store is a
+	# command-line flag, SIGHUP cannot change it) or a stop when start_service
+	# adds no instance (the file is missing or fails validation). Unlike stop,
+	# that keeps the service and its triggers registered, so starting it again
+	# works.
 	config_load "$CONF"
 
-	local config_file
+	local config_file store data_dir want
 	config_get config_file "config" "config_file" "/etc/honk/config.dae"
+	read_store
 	procd_running "$CONF" "$CONF" || return 0
-	if ubus call service list "{\"name\":\"$CONF\"}" 2>/dev/null |
-		jsonfilter -q -e "@.$CONF.instances.$CONF.command[*]" | grep -qxF -- "$config_file"; then
+	# The command as jsonfilter prints it, one argument per line
+	want="$PROG
+--config
+$config_file"
+	[ "$store" = "db" ] && want="$want
+--store
+db
+--data-dir
+$data_dir"
+	if [ "$(ubus call service list "{\"name\":\"$CONF\"}" 2>/dev/null |
+		jsonfilter -q -e "@.$CONF.instances.$CONF.command[*]")" = "$want" ]; then
 		# `honk-core reload` reads the instance lock and sends SIGHUP, so a
 		# stale instance is reported instead of signalling an unrelated PID.
 		"$PROG" reload

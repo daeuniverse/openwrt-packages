@@ -81,6 +81,21 @@ msgstr "若要從區域網路直接開啟，請設定 %s 並重新啟動 honk。
 msgid "honk only accepts IP addresses; open LuCI by IP address."
 msgstr "honk 僅接受 IP 位址；請使用 IP 位址開啟 LuCI。"
 
+msgid "Set experimental.native_api.enabled to true."
+msgstr "將 experimental.native_api.enabled 設為 true。"
+
+msgid "Set experimental.native_api.config_write to true."
+msgstr "將 experimental.native_api.config_write 設為 true。"
+
+msgid "Set experimental.native_api.password_auth to true or set experimental.native_api.secret."
+msgstr "將 experimental.native_api.password_auth 設為 true，或設定 experimental.native_api.secret。"
+
+msgid "Set global.data_dir to %s."
+msgstr "將 global.data_dir 設為 %s。"
+
+msgid "Remove experimental.clash_api.external_controller."
+msgstr "刪除 experimental.clash_api.external_controller。"
+
 msgid "Version"
 msgstr "版本"
 
@@ -146,6 +161,12 @@ msgstr "啟用 doona 網頁介面"
 
 msgid "Unchecked, honk runs without the native API and doona. Saving restarts honk."
 msgstr "取消勾選後，honk 只運行核心，不啟用 native API 與 doona。儲存時會重新啟動 honk。"
+
+msgid "Keep the configuration in a database"
+msgstr "將設定儲存在資料庫中"
+
+msgid "Lets doona import the configuration and keep a revision history. honk then reads the database, not the configuration file. Saving restarts honk."
+msgstr "讓 doona 匯入設定並保留修訂記錄。此後 honk 讀取資料庫，不再讀取設定檔。儲存後會重新啟動 honk。"
 
 msgid "Saved, the service is restarting"
 msgstr "已儲存，服務正在重新啟動"

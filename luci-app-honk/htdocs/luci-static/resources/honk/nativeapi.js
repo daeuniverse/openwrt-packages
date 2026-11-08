@@ -78,10 +78,48 @@ function defaultBlock(indent, eol) {
 }
 
 return baseclass.extend({
+	/* The inside of the first `name` block with comments blanked, or null */
+	section(text, name) {
+		const block = findBlock(mask(text), name);
+		return block ? mask(text, true).slice(block.open + 1, block.close) : null;
+	},
+
 	/* The inside of the native_api block with comments blanked, or null */
 	body(text) {
-		const block = findBlock(mask(text), 'native_api');
-		return block ? mask(text, true).slice(block.open + 1, block.close) : null;
+		return this.section(text, 'native_api');
+	},
+
+	/* The value of `key` in the first `name` block of the files: '' when the
+	   key is missing or empty, null when no file has the block */
+	value(files, name, key) {
+		for (const file of files) {
+			const body = this.section(file.text ?? '', name);
+			if (body == null)
+				continue;
+			const match = new RegExp('(?:^|[\\s;,])' + key + '\\s*:\\s*(?:\'([^\']*)\'|"([^"]*)"|([^\\s;,]+))').exec(body);
+			return match ? (match[1] ?? match[2] ?? match[3]) : '';
+		}
+		return null;
+	},
+
+	/* What stops `--store db` from starting with these files, one sentence
+	   per key to change; honk checks the same when it imports them */
+	storeProblems(files, dataDir) {
+		const value = (name, key) => this.value(files, name, key) ?? '';
+		const slashless = path => path.replace(/\/+$/, '');
+		const problems = [];
+
+		if (value('native_api', 'enabled') !== 'true')
+			problems.push(_('Set experimental.native_api.enabled to true.'));
+		if (value('native_api', 'config_write') !== 'true')
+			problems.push(_('Set experimental.native_api.config_write to true.'));
+		if (value('native_api', 'password_auth') !== 'true' && !value('native_api', 'secret'))
+			problems.push(_('Set experimental.native_api.password_auth to true or set experimental.native_api.secret.'));
+		if (slashless(value('global', 'data_dir')) !== slashless(dataDir))
+			problems.push(_('Set global.data_dir to %s.').format(dataDir));
+		if (value('clash_api', 'external_controller'))
+			problems.push(_('Remove experimental.clash_api.external_controller.'));
+		return problems;
 	},
 
 	/* Whether the files enable the native API */
