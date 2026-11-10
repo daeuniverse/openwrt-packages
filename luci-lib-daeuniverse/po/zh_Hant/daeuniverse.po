@@ -114,8 +114,8 @@ msgstr "升級"
 msgid "Select the packages to upgrade:"
 msgstr "選擇要升級的套件："
 
-msgid "Upgrading restarts the service and interrupts connections for a few seconds. Continue?"
-msgstr "升級將重新啟動服務，連線將中斷數秒。是否繼續？"
+msgid "Upgrading %s restarts the service and interrupts connections for a few seconds; upgrading only the other packages reloads it. Continue?"
+msgstr "升級 %s 會重新啟動服務，連線將中斷數秒；只升級其他套件則改為重新載入。是否繼續？"
 
 msgid "Upgrading…"
 msgstr "正在升級…"

@@ -607,7 +607,7 @@ const ServiceView = view.extend({
 				E('div', {}, updates.map((pkg, i) => E('div', {}, E('label', {}, [
 					boxes[i], ' ', pkg.name + ': ' + current[pkg.name] + ' → ' + pkg.version
 				])))),
-				E('p', {}, _('Upgrading restarts the service and interrupts connections for a few seconds. Continue?')),
+				E('p', {}, _('Upgrading %s restarts the service and interrupts connections for a few seconds; upgrading only the other packages reloads it. Continue?').format(this.app.name)),
 				E('div', { 'class': 'right' }, [
 					E('button', { 'class': 'btn', 'click': ui.hideModal }, _('Cancel')),
 					' ',
