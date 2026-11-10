@@ -387,7 +387,9 @@ After setting up the package feed, run on the router:
 
 ```sh
 apk update
-apk upgrade dae honk luci-app-dae luci-app-honk v2ray-geoip v2ray-geosite
+apk upgrade dae honk luci-app-dae luci-app-honk luci-lib-daeuniverse \
+  luci-i18n-daeuniverse-zh-cn luci-i18n-daeuniverse-zh-tw \
+  v2ray-geoip v2ray-geosite
 ```
 
 Name only the packages that are installed. apk upgrades their dependencies,

@@ -26,7 +26,11 @@ valid_app() {
 
 valid_package() {
 	case "$1" in
-		dae|honk|luci-app-dae|luci-app-honk|luci-lib-daeuniverse|v2ray-geoip|v2ray-geosite)
+		dae|honk|luci-app-dae|luci-app-honk|luci-lib-daeuniverse)
+			return 0 ;;
+		luci-i18n-daeuniverse-zh-cn|luci-i18n-daeuniverse-zh-tw)
+			return 0 ;;
+		v2ray-geoip|v2ray-geosite)
 			return 0 ;;
 		*) return 1 ;;
 	esac
@@ -164,7 +168,9 @@ case "$command" in
 		[ "$#" -eq 1 ] || fail 'Exactly one application is required.'
 		valid_app "$1" || fail 'Invalid application.'
 		app=$1
-		set -- "$app" "luci-app-$app" luci-lib-daeuniverse v2ray-geoip v2ray-geosite
+		set -- "$app" "luci-app-$app" luci-lib-daeuniverse \
+			luci-i18n-daeuniverse-zh-cn luci-i18n-daeuniverse-zh-tw \
+			v2ray-geoip v2ray-geosite
 		if [ "$command" = installed ]; then
 			query_installed "$@"
 		else

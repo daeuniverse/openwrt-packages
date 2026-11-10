@@ -540,7 +540,7 @@ def guide(lang, T, builds, base):
 <p>{T["store_note"]}</p>
 <h3>{T["upgrade"]}</h3>
 <p>{T["upgrade_note"]}</p>
-{per_app(lambda app: f"apk update\napk upgrade {app} luci-app-{app} v2ray-geoip v2ray-geosite")}
+{per_app(lambda app: f"apk update\napk upgrade {app} luci-app-{app} luci-lib-daeuniverse \\\n  luci-i18n-daeuniverse-zh-cn luci-i18n-daeuniverse-zh-tw \\\n  v2ray-geoip v2ray-geosite")}
 <p>{T["upgrade_config"]}</p>
 
 {h2["errors"]}

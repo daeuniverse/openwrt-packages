@@ -567,6 +567,7 @@ const ServiceView = view.extend({
 		const output = error.output ?? error.message;
 		const nodes = [ E(tag, {}, error.message), E('pre', { 'class': 'du-log' }, output) ];
 		const pinned = [ 'dae', 'honk', 'luci-app-dae', 'luci-app-honk', 'luci-lib-daeuniverse',
+			'luci-i18n-daeuniverse-zh-cn', 'luci-i18n-daeuniverse-zh-tw',
 			'v2ray-geoip', 'v2ray-geosite' ].filter(name =>
 				new RegExp('breaks: world\\[' + name + '(?=[\\]@<>=~])').test(output));
 		if (pinned.length)
