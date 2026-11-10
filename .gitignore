@@ -13,3 +13,6 @@
 # from the secret (scripts/setup-signing-key.sh), keys/public-key.pem is the
 # published half and belongs in the repository.
 /keys/private-key.pem
+
+# Bytecode caches of the feed-site generator and its tests
+__pycache__/
