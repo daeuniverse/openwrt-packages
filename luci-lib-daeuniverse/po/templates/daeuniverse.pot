@@ -145,7 +145,7 @@ msgid "Select the packages to upgrade:"
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js
-msgid "Upgrading restarts the service and interrupts connections for a few seconds. Continue?"
+msgid "Upgrading %s restarts the service and interrupts connections for a few seconds; upgrading only the other packages reloads it. Continue?"
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js

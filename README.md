@@ -387,13 +387,22 @@ After setting up the package feed, run on the router:
 
 ```sh
 apk update
-apk upgrade dae honk luci-app-dae luci-app-honk v2ray-geoip v2ray-geosite
+apk upgrade dae honk luci-app-dae luci-app-honk luci-lib-daeuniverse \
+  luci-i18n-daeuniverse-zh-cn luci-i18n-daeuniverse-zh-tw \
+  v2ray-geoip v2ray-geosite
 ```
 
 Name only the packages that are installed. apk upgrades their dependencies,
 such as `vmlinux-btf`, when a new version needs them. In LuCI, use **Check for
 updates** and then **Upgrade** under **Services → dae** or **Services → honk**,
 or the **Updates** tab under **System → Software**.
+
+Upgrading `v2ray-geoip` or `v2ray-geosite` alone restarts nothing, so the
+service pages reload dae or honk when the upgrade finishes; a reload keeps
+established connections. honk also refreshes the geo data itself, by default
+once a day, and writes it into its data directory, which takes precedence over
+the packaged files from then on, so for honk these two packages are only the
+first copy.
 
 The service pages let you select packages before starting a background upgrade.
 The dialog shows live output and reconnects after rpcd reloads; reopening the page

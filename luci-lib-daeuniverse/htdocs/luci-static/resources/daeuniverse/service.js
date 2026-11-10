@@ -567,6 +567,7 @@ const ServiceView = view.extend({
 		const output = error.output ?? error.message;
 		const nodes = [ E(tag, {}, error.message), E('pre', { 'class': 'du-log' }, output) ];
 		const pinned = [ 'dae', 'honk', 'luci-app-dae', 'luci-app-honk', 'luci-lib-daeuniverse',
+			'luci-i18n-daeuniverse-zh-cn', 'luci-i18n-daeuniverse-zh-tw',
 			'v2ray-geoip', 'v2ray-geosite' ].filter(name =>
 				new RegExp('breaks: world\\[' + name + '(?=[\\]@<>=~])').test(output));
 		if (pinned.length)
@@ -606,7 +607,7 @@ const ServiceView = view.extend({
 				E('div', {}, updates.map((pkg, i) => E('div', {}, E('label', {}, [
 					boxes[i], ' ', pkg.name + ': ' + current[pkg.name] + ' → ' + pkg.version
 				])))),
-				E('p', {}, _('Upgrading restarts the service and interrupts connections for a few seconds. Continue?')),
+				E('p', {}, _('Upgrading %s restarts the service and interrupts connections for a few seconds; upgrading only the other packages reloads it. Continue?').format(this.app.name)),
 				E('div', { 'class': 'right' }, [
 					E('button', { 'class': 'btn', 'click': ui.hideModal }, _('Cancel')),
 					' ',
