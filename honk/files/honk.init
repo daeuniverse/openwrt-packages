@@ -113,6 +113,10 @@ start_service() {
 	procd_set_param respawn
 	procd_set_param stdout 1
 	procd_set_param stderr 1
+	# honk takes its time zone (log times, the geodata update schedule) from TZ,
+	# then /etc/localtime. Without a zoneinfo package OpenWrt keeps the zone
+	# only in /etc/TZ, so honk would run on UTC. A zone change needs a restart.
+	[ -s /etc/TZ ] && procd_append_param env TZ="$(cat /etc/TZ)"
 	procd_close_instance
 }
 
