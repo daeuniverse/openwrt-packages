@@ -70,7 +70,7 @@ name: Build vmlinux (BTF)
 #           OpenWrt SDK toolchain: its C/C++ dependencies (BoringSSL, SQLite)
 #           are built by the SDK gcc/g++, and it links against the musl of that
 #           SDK, so the device needs libstdcpp. The full feature set is
-#           enabled (clash-api, mimalloc, rprx, ebpf, native-ui): native-ui
+#           enabled (clash-api, jemalloc, rprx, ebpf, native-ui): native-ui
 #           embeds the doona dashboard downloaded from its release, so the UI
 #           is not built here.
 # These jobs only provide the toolchains (Go release tarball, rustup's prebuilt
