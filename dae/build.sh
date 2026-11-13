@@ -3,7 +3,7 @@
 # package Makefile, so every input arrives as an environment variable:
 #
 #   DAE_SRC            build directory holding the checked out sources
-#   DAE_VERSION        version string the binary reports (e.g. 2.1.1)
+#   DAE_VERSION        version string the binary reports (e.g. 2.1.2)
 #   DAE_ARCH_PACKAGES  arch_packages of the target, e.g. aarch64_cortex-a76
 #   DAE_CLANG          clang that compiles the bpf2go objects
 #   DAE_STRIP          strip program (may be empty)

@@ -107,7 +107,7 @@ name: Build vmlinux (BTF)
 #
 # The userspace packages are pinned to upstream releases and therefore do not
 # depend on the kernel version (the versions live in the prepare job):
-#   dae  - tag v2.1.1,            package version 2.1.1
+#   dae  - tag v2.1.2,            package version 2.1.2
 #   honk - tag v0.1.0-beta.6,     package version 0.1.0_beta6
 # apk spells a pre-release with "_beta" ("~" is reserved for a commit hash), so
 # the honk tag cannot be used verbatim as the package version. The package
@@ -267,8 +267,8 @@ jobs:
           # package Makefiles. honk is tagged v0.1.0-beta.6, but apk spells a
           # beta pre-release with "_beta" ("~" means a commit hash), hence
           # 0.1.0_beta6 while the sources come from the tag itself.
-          DAE_VERSION="2.1.1"
-          DAE_GIT_TAG="v2.1.1"
+          DAE_VERSION="2.1.2"
+          DAE_GIT_TAG="v2.1.2"
           HONK_VERSION="0.1.0_beta6"
           HONK_GIT_TAG="v0.1.0-beta.6"
           echo "Userspace versions: dae ${DAE_VERSION} (${DAE_GIT_TAG}), honk ${HONK_VERSION} (${HONK_GIT_TAG})"
@@ -1498,7 +1498,7 @@ jobs:
           run are attached as well. They are pinned to upstream releases and do
           not depend on the kernel version:
 
-          - <openwrt_version>-dae-2.1.1-<openwrt_arch>.apk
+          - <openwrt_version>-dae-2.1.2-<openwrt_arch>.apk
           - <openwrt_version>-honk-0.1.0_beta6-<openwrt_arch>.apk
 
           Both depend on vmlinux-btf. On a kernel with its own BTF (ImmortalWrt)

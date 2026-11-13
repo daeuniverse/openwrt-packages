@@ -54,7 +54,7 @@ directories into an OpenWrt buildroot or use a manually unpacked SDK.
 From this repository's root, check out the sources with:
 
 ```sh
-git clone --recurse-submodules --branch v2.1.1 https://github.com/daeuniverse/dae dae/src
+git clone --recurse-submodules --branch v2.1.2 https://github.com/daeuniverse/dae dae/src
 git clone --branch v0.1.0-beta.6 https://github.com/daeuniverse/honk honk/src
 ```
 
@@ -72,7 +72,7 @@ instead of `vmlinux-btf`.
 | `<openwrt_version>-vmlinux-<target>-<subtarget>-<kernel_version>.tar.xz` | One file named `vmlinux`: the detached BTF blob that the upstream package installs | `src/shadow_btf_*.c` compiled against the SDK's prepared kernel headers with the SDK toolchain, then `pahole` |
 | `<openwrt_version>-vmlinux-btf-<target>-<subtarget>-<kernel_version>.apk` | OpenWrt package `vmlinux-btf` (version = kernel version). Installs `/usr/lib/debug/boot/vmlinux`, the `vmlinux-<kernel release>` symlink and `/usr/share/vmlinux-btf/version`. Requires the exact kernel from its build. | The same blob, packaged with [`vmlinux-btf/Makefile`](vmlinux-btf/Makefile) |
 | `vmlinux-btf-builtin-<version>.apk` | Empty, architecture-independent OpenWrt package. Provides `vmlinux-btf` on a kernel with its own BTF (ImmortalWrt), where `vmlinux-btf` does not install. | [`vmlinux-btf-builtin/Makefile`](vmlinux-btf-builtin/Makefile) |
-| `<openwrt_version>-dae-2.1.1-<openwrt_arch>.apk` | OpenWrt package `dae` 2.1.1. Installs `/usr/bin/dae`, a procd init script and `/etc/config/dae`. | [daeuniverse/dae](https://github.com/daeuniverse/dae) tag `v2.1.1`, built by [`dae/Makefile`](dae/Makefile) |
+| `<openwrt_version>-dae-2.1.2-<openwrt_arch>.apk` | OpenWrt package `dae` 2.1.2. Installs `/usr/bin/dae`, a procd init script and `/etc/config/dae`. | [daeuniverse/dae](https://github.com/daeuniverse/dae) tag `v2.1.2`, built by [`dae/Makefile`](dae/Makefile) |
 | `<openwrt_version>-honk-0.1.0_beta6-<openwrt_arch>.apk` | OpenWrt package `honk` 0.1.0_beta6. Installs `/usr/bin/honk-core` with all features and the embedded doona UI, a procd init script and `/etc/config/honk`. | [daeuniverse/honk](https://github.com/daeuniverse/honk) tag `v0.1.0-beta.6`, built by [`honk/Makefile`](honk/Makefile) |
 | `public-key.pem` | Public key for verifying every `.apk` asset in the release | [`keys/public-key.pem`](keys/public-key.pem), see [Verifying the packages](#verifying-the-packages) |
 
@@ -84,7 +84,7 @@ See [OpenWrt integration](#openwrt-integration) to configure and enable them.
 The workflow uploads every archive and package with its `.sha256` checksum.
 It builds `dae` and `honk` once per OpenWrt architecture at a pinned upstream
 release. Their file names contain that version, not the kernel version:
-`25.12.6-dae-2.1.1-x86_64.apk` for `x86_64`, for example, and
+`25.12.6-dae-2.1.2-x86_64.apk` for `x86_64`, for example, and
 `25.12.6-honk-0.1.0_beta6-aarch64_cortex-a76.apk` for `aarch64_cortex-a76`.
 OpenWrt 25.x produces `.apk` packages. The workflow signs them before publishing.
 It rejects older `.ipk` output.
@@ -153,7 +153,7 @@ log the same warning.
 Install the `dae` and `honk` package files with apk too:
 
 ```sh
-apk add 25.12.6-dae-2.1.1-aarch64_cortex-a76.apk
+apk add 25.12.6-dae-2.1.2-aarch64_cortex-a76.apk
 apk add 25.12.6-honk-0.1.0_beta6-aarch64_cortex-a76.apk
 ```
 
@@ -455,7 +455,7 @@ instructions instead of LL/SC loops.
 flowchart LR
   P["prepare<br/>resolve targets, SDKs, kernel version<br/>and arch_packages"]
   K["build (one per target)<br/>SDK kernel headers + SDK toolchain<br/>stubs → DWARF → pahole → BTF blob<br/>+ vmlinux-btf package"]
-  D["dae 2.1.1 (one per OpenWrt arch)<br/>Go, clang for the eBPF objects"]
+  D["dae 2.1.2 (one per OpenWrt arch)<br/>Go, clang for the eBPF objects"]
   H["honk 0.1.0_beta6 (one per OpenWrt arch)<br/>Rust, full features + embedded doona UI,<br/>eBPF object + BoringSSL via the SDK gcc/g++"]
   L["luci<br/>the LuCI apps and vmlinux-btf-builtin,<br/>built once (all architectures)"]
   R["release<br/>group by kernel version,<br/>one Release per version"]
@@ -521,7 +521,7 @@ using `VMLINUX_BTF_SRC` and the kernel version as the package version.
 The symlink name comes from `UTS_RELEASE` in `include/generated/utsrelease.h`;
 the SDK does not keep `include/config/kernel.release`.
 
-**dae**: checks out `v2.1.1` and the eBPF header submodules.
+**dae**: checks out `v2.1.2` and the eBPF header submodules.
 The job installs Go through `actions/setup-go`, using the version in
 `dae/src/go.mod`, and clang for the eBPF objects that `bpf2go` embeds.
 [`dae/Makefile`](dae/Makefile) calls [`dae/build.sh`](dae/build.sh) from
@@ -600,7 +600,7 @@ This table lists the upstream sources and the parts this repository uses.
 |---|---|
 | [QiuSimons/vmlinux-btf](https://github.com/QiuSimons/vmlinux-btf) (OpenWrt package, GPL-3.0) | Verbatim copies of `src/shadow_btf_{core,modules,private}.c` from commit `4585b7c`. These use `BTF_KEEP` to keep structs reachable. The build follows upstream's `Makefile` for `BTF_CFLAGS`, detached encoding, the `-J` + `objcopy` fallback and the `pahole -C sk_buff` check. Upstream uses an OpenWrt buildroot or SDK container. This workflow reconstructs `$(LINUX_DIR)`, `TARGET_CC_NOCACHE` and `STAGING_DIR` from the SDK archive. [`vmlinux-btf/Makefile`](vmlinux-btf/Makefile) follows the upstream install layout: `/usr/lib/debug/boot/vmlinux` and the `vmlinux-<kernel release>` symlink. It uses `LINUX_VERSION` (here `VMLINUX_BTF_VERSION`) as the version and installs a prebuilt blob. |
 | [openwrt/openwrt](https://github.com/openwrt/openwrt) (GPL-2.0) | The prebuilt SDKs (toolchain, the prepared kernel header tree, `staging_dir` layout), the `STAGING_DIR` / `STAGING_DIR_HOST` semantics from `rules.mk`, and the target metadata (`profiles.json`: `arch_packages`, `linux_kernel.version`). |
-| [daeuniverse/dae](https://github.com/daeuniverse/dae) (AGPL-3.0) | Sources at `v2.1.1`, including the `Makefile` and `dae_bpf_headers` submodules. The cross-compile recipe follows upstream's release workflow: `CGO_ENABLED=0`, clang for `bpf2go` and `GOOS=linux`. The Makefile unsets `GOOS`/`GOARCH` for `go generate` to generate eBPF on the host. Removing the tag's leading `v` gives the package version `2.1.1`. |
+| [daeuniverse/dae](https://github.com/daeuniverse/dae) (AGPL-3.0) | Sources at `v2.1.2`, including the `Makefile` and `dae_bpf_headers` submodules. The cross-compile recipe follows upstream's release workflow: `CGO_ENABLED=0`, clang for `bpf2go` and `GOOS=linux`. The Makefile unsets `GOOS`/`GOARCH` for `go generate` to generate eBPF on the host. Removing the tag's leading `v` gives the package version `2.1.2`. |
 | [daeuniverse/honk](https://github.com/daeuniverse/honk) (GPL-3.0) | Sources at `v0.1.0-beta.6` and the upstream release build recipe. The `rust-toolchain.toml` files pin the toolchains. `build.rs` builds eBPF with `-Zbuild-std=core --target bpfel-unknown-none` and checks its BTF. `.github/ci/pins.env` pins `bpf-linker`. The build enables `clash-api`, `jemalloc`, `rprx`, `ebpf` and `native-ui`. The compiler wrappers follow `ci/zigcc`/`ci/zigcxx`/`ci/zig-bindgen-env` and their CMake/bindgen handling. They use OpenWrt's `gcc`/`g++` instead of zig because the SDK provides the target compiler and libc. The binary embeds `v0.1.0-beta.6`; the package uses `0.1.0_beta6` because apk reserves `~` for a commit hash. `native-ui` embeds doona from the release pinned in `.github/ci/pins.env`, downloaded by `ci/fetch-doona.sh`. |
 | [Zakkaus/doona](https://github.com/Zakkaus/doona) (GPL-3.0) | Prebuilt dashboard archive for honk's `native-ui` feature. honk's `pins.env` supplies the version and SHA-256. This repository downloads the archive without building the frontend. |
 | [aya-rs/bpf-linker](https://github.com/aya-rs/bpf-linker) | The prebuilt `bpf-linker` binary (version and SHA256 come from honk's `pins.env`). |
