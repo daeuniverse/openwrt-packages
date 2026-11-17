@@ -18,7 +18,7 @@
  *   name           service, UCI package and init script
  *   other          the service that cannot run at the same time; starting this
  *                  one stops that one first, and turning Start at boot on here
- *                  turns it off there
+ *                  turns it off there in the same Save & Apply
  *   defaultConfig  entry file when UCI has none
  *   validate       [ command, args ] that take the entry file and exit non-zero
  *                  on a broken configuration, or null
@@ -50,13 +50,6 @@ const callInitAction = rpc.declare({
 	params: [ 'name', 'action' ]
 });
 
-const callRcList = rpc.declare({
-	object: 'rc',
-	method: 'list',
-	params: [ 'name' ],
-	expect: { '': {} }
-});
-
 const callLogRead = rpc.declare({
 	object: 'log',
 	method: 'read',
@@ -69,9 +62,9 @@ function isRunning(name) {
 		Object.values(res?.[name]?.instances ?? {}).some(i => i.running));
 }
 
-// The rc.d link of the init script; false for a service that is not installed
-function isBootEnabled(name) {
-	return L.resolveDefault(callRcList(name), {}).then(res => res?.[name]?.enabled === true);
+// The values the init scripts take for option enabled
+function isOn(value) {
+	return /^(1|on|true|yes|enabled)$/.test(value ?? '');
 }
 
 // A service takes a moment to come up or go down
@@ -355,14 +348,15 @@ const ServiceView = view.extend({
 	app: null,
 
 	load() {
-		return uci.load(this.app.name).then(() => {
+		// The other service may not be installed; its Start at boot is then left alone
+		return Promise.all([ uci.load(this.app.name), L.resolveDefault(uci.load(this.app.other)) ]).then(() => {
 			const entry = uci.get(this.app.name, 'config', 'config_file') || this.app.defaultConfig;
 			// A file the page may not read leaves the status and the log usable,
 			// so config_file can be set back from here.
 			return Promise.all([ entry, collectFiles(entry, readFromDisk).catch(err => {
 				ui.addNotification(null, E('p', _('Unable to read %s: %s').format(entry, err.message)), 'error');
 				return [];
-			}), this.queryPackages().catch(error => ({ error })), isBootEnabled(this.app.name) ]);
+			}), this.queryPackages().catch(error => ({ error })) ]);
 		});
 	},
 
@@ -814,40 +808,6 @@ const ServiceView = view.extend({
 		}
 	},
 
-	updateBoot() {
-		return isBootEnabled(this.app.name).then(enabled => {
-			if (!this.bootBusy)
-				this.bootSwitch.checked = enabled;
-		});
-	},
-
-	/* The switch acts at once through the init script; there is nothing to save.
-	   Only one of dae and honk may start at boot, so turning it on here turns it
-	   off for the other. */
-	async handleBootChange(on) {
-		const { name, other } = this.app;
-
-		this.bootBusy = true;
-		this.bootSwitch.disabled = true;
-		try {
-			const turnedOff = on && await isBootEnabled(other);
-			if (turnedOff)
-				await callInitAction(other, 'disable');
-			await callInitAction(name, on ? 'enable' : 'disable');
-			notify(turnedOff
-				? _('Start at boot is on; %s no longer starts at boot, because dae and honk cannot run at the same time.').format(other)
-				: on ? _('Start at boot is on') : _('Start at boot is off'), 'info');
-		}
-		catch (err) {
-			ui.addNotification(null, E('p', _('Unable to change Start at boot: %s').format(err.message)), 'error');
-		}
-		finally {
-			this.bootBusy = false;
-			this.bootSwitch.disabled = false;
-			await this.updateBoot();
-		}
-	},
-
 	updateLog() {
 		// logd returns nothing for lines=0; 1000 is what LuCI's own log view reads.
 		return L.resolveDefault(callLogRead(1000, false, true), []).then(entries => {
@@ -864,8 +824,8 @@ const ServiceView = view.extend({
 		});
 	},
 
-	async render([ entry, files, installed, bootEnabled ]) {
-		const { name, title, defaultConfig } = this.app;
+	async render([ entry, files, installed ]) {
+		const { name, title, other, defaultConfig } = this.app;
 
 		document.head.appendChild(E('style', {}, STYLE));
 
@@ -902,18 +862,20 @@ const ServiceView = view.extend({
 			' ', this.checkButton, this.packageStatus
 		]);
 
-		// Not a UCI option: the rc.d link of the init script, which the switch
-		// changes at once
-		this.bootSwitch = E('input', {
-			'type': 'checkbox', 'id': name + '-boot',
-			'change': ev => this.handleBootChange(ev.target.checked)
-		});
-		this.bootSwitch.checked = bootEnabled;
-		o = s.option(form.DummyValue, '_boot', _('Start at boot'),
+		// The init script's boot reads it; applying it reloads a running service
+		// and leaves a stopped one stopped.
+		o = s.option(form.Flag, 'enabled', _('Start at boot'),
 			_('Starts automatically when the router boots; does not change whether it is running now.'));
-		o.renderWidget = () => E('div', { 'class': 'cbi-checkbox' }, [
-			this.bootSwitch, E('label', { 'for': name + '-boot' })
-		]);
+		o.rmempty = false;
+		o.default = '0';
+		// Only one of dae and honk may start at boot. Both changes go out in the
+		// same apply; a page whose other service is not installed has not loaded
+		// its package and leaves it alone.
+		o.write = function(section_id, value) {
+			if (value === '1' && isOn(uci.get(other, 'config', 'enabled')))
+				uci.set(other, 'config', 'enabled', '0');
+			return form.Flag.prototype.write.call(this, section_id, value);
+		};
 
 		o = s.option(form.Value, 'config_file', _('Configuration file'));
 		o.placeholder = defaultConfig;
@@ -1006,7 +968,6 @@ const ServiceView = view.extend({
 				this.updateLog().then(() => { this.logBox.scrollTop = this.logBox.scrollHeight; }));
 			poll.add(() => Promise.all([
 				this.updateStatus(),
-				this.updateBoot(),
 				logPane.getAttribute('data-tab-active') === 'true' ? this.updateLog() : null
 			]), 5);
 

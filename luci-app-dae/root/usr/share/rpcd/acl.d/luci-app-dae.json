@@ -12,7 +12,6 @@
 			"ubus": {
 				"file": [ "list", "read", "exec" ],
 				"log": [ "read" ],
-				"rc": [ "list" ],
 				"service": [ "list" ]
 			},
 			"uci": [ "dae", "honk" ]

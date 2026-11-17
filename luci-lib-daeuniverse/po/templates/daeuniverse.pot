@@ -281,22 +281,6 @@ msgid "Starts automatically when the router boots; does not change whether it is
 msgstr ""
 
 #: htdocs/luci-static/resources/daeuniverse/service.js
-msgid "Start at boot is on"
-msgstr ""
-
-#: htdocs/luci-static/resources/daeuniverse/service.js
-msgid "Start at boot is off"
-msgstr ""
-
-#: htdocs/luci-static/resources/daeuniverse/service.js
-msgid "Start at boot is on; %s no longer starts at boot, because dae and honk cannot run at the same time."
-msgstr ""
-
-#: htdocs/luci-static/resources/daeuniverse/service.js
-msgid "Unable to change Start at boot: %s"
-msgstr ""
-
-#: htdocs/luci-static/resources/daeuniverse/service.js
 msgid "%s was stopped first, because dae and honk cannot run at the same time."
 msgstr ""
 

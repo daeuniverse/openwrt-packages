@@ -216,18 +216,6 @@ msgstr "開機自動啟動"
 msgid "Starts automatically when the router boots; does not change whether it is running now."
 msgstr "路由器開機時自動啟動；不影響目前是否正在執行。"
 
-msgid "Start at boot is on"
-msgstr "已開啟開機自動啟動"
-
-msgid "Start at boot is off"
-msgstr "已關閉開機自動啟動"
-
-msgid "Start at boot is on; %s no longer starts at boot, because dae and honk cannot run at the same time."
-msgstr "已開啟開機自動啟動。dae 和 honk 不能同時執行，%s 不再開機自動啟動。"
-
-msgid "Unable to change Start at boot: %s"
-msgstr "無法變更開機自動啟動：%s"
-
 msgid "%s was stopped first, because dae and honk cannot run at the same time."
 msgstr "dae 和 honk 不能同時執行，已先停止 %s。"
 
