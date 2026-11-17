@@ -204,30 +204,36 @@ checksums instead.
 Both services start disabled and stopped after a fresh install.
 The init scripts are [`dae/files/dae.init`](dae/files/dae.init) and
 [`honk/files/honk.init`](honk/files/honk.init). On the router, adapt the
-configuration file in `/etc/dae` or `/etc/honk`, then enable and start the
-chosen service:
+configuration file in `/etc/dae` or `/etc/honk`, then turn on start at boot
+and start the chosen service:
 
 ```sh
 # /etc/config/dae or /etc/config/honk
 config dae 'config'            # config honk 'config'
+	option enabled '1'
 	option config_file '/etc/dae/config.dae'   # or /etc/honk/config.dae
 
-/etc/init.d/dae enable && /etc/init.d/dae start
-/etc/init.d/honk enable && /etc/init.d/honk start
+uci set dae.config.enabled=1 && uci commit dae && /etc/init.d/dae start
+uci set honk.config.enabled=1 && uci commit honk && /etc/init.d/honk start
 ```
 
-`enable` makes the service start at boot and `disable` stops that; neither
-changes whether it runs now.
+The UCI option `enabled` decides whether the service starts at boot (`1`) or
+not (`0`); changing it does not change whether the service runs now.
 
 The init scripts follow procd conventions:
 
-* Starting at boot is the `rc.d` link that `enable` and `disable` manage.
-  `start`, `stop` and `restart` work whatever it says. When apk installs a
-  package it enables and starts the init script; a fresh install is turned back
-  off, and an upgrade restarts the service only if it was enabled. Earlier
-  versions kept this setting in the UCI option `enabled`; the upgrade applies
-  it to the link and deletes the option, also when apk replaced the unedited
-  `/etc/config` file (the package's pre-install script saves the value first).
+* Starting at boot is the UCI option `enabled`, as in luci-app-upnp. The
+  `rc.d` link of the init script stays enabled and its `boot` starts the
+  service only when the option is on. `start`, `stop` and `restart` work
+  whatever it says. The packaged `/etc/config` file has no `enabled`; the
+  package's uci-defaults script sets it to `0` on a fresh install and on the
+  first boot of a new firmware image, and keeps a value that is already set,
+  so an upgrade and a sysupgrade that keeps the settings keep the user's
+  choice. When apk installs or upgrades a package it starts the init script,
+  which starts only an enabled service, and an upgrade restarts an enabled
+  service. An upgrade from the versions whose boot setting was the `rc.d` link
+  takes `enabled` from that link; the package's pre-install script saves the
+  option first when apk replaces an unedited `/etc/config` file.
 * dae and honk cannot run together: both create the `dae0` link pair and
   `daens` namespace and attach to the same interfaces. In LuCI, **Start** stops
   the other service first, and turning on **Start at boot** turns it off for
@@ -303,9 +309,9 @@ and engine problems to [honk](https://github.com/daeuniverse/honk/issues).
 honk** to LuCI. They share the page from `luci-lib-daeuniverse`, with three tabs:
 
 * **Service status**: shows whether the service is running, its installed package
-  version and configuration file. Start, Stop and Restart act at once. The
-  **Start at boot** switch runs `enable` or `disable` of the init script at once
-  and needs no Save & Apply. The configuration editor can only read and write
+  version and configuration file. Start, Stop and Restart act at once.
+  **Start at boot** is the UCI option `enabled` and takes effect with Save &
+  Apply. The configuration editor can only read and write
   files under `/etc/dae` or `/etc/honk`.
 * **Configuration**: edits the main configuration file and files loaded with
   `include`, with syntax highlighting. Each tab saves to its own file.
@@ -659,10 +665,10 @@ The `dae`/`honk` packages install upstream license text under
   (ImmortalWrt).
 * dae reloads with `SIGUSR1` instead of the ignored `SIGHUP`.
   `reload` follows `config_file`.
-* Starting at boot is the init script's `rc.d` link, switched by `enable` and
-  `disable` or by **Start at boot** in LuCI, instead of the UCI option
-  `enabled`. A fresh install stays disabled; an upgrade moves the old option to
-  the link. dae and honk never run together: **Start** stops the other service.
+* Only the init script's `boot` reads the UCI option `enabled`, so `start`,
+  `stop` and `restart` work whatever it says. A fresh install stays off at
+  boot, and upgrades and a sysupgrade that keeps the settings keep the option.
+  dae and honk never run together: **Start** stops the other service.
 * honk no longer stacks a new bpffs mount on every start (BusyBox has no
   `mountpoint`).
 
