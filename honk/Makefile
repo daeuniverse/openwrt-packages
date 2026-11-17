@@ -22,10 +22,11 @@
 #
 # The package also installs an OpenWrt procd init script (files/honk.init), its
 # UCI configuration (files/honk.config) and a minimal /etc/honk/config.dae with
-# the embedded UI enabled on loopback. The service is disabled by default;
-# run /etc/init.d/honk enable and start it after adding nodes and routing
-# rules. files/honk.uci-defaults moves the boot setting of earlier versions
-# (UCI option enabled) to that rc.d link.
+# the embedded UI enabled on loopback. The service does not start at boot by
+# default: after adding nodes and routing rules, set the UCI option
+# honk.config.enabled to 1 and start it. files/honk.uci-defaults sets that
+# option, keeping the boot setting of earlier versions (the option, or the
+# rc.d link of the versions that used it).
 #
 # This file is free software, licensed under the GNU General Public License v3
 # or later.
@@ -39,7 +40,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=honk
 PKG_VERSION:=$(if $(HONK_VERSION),$(HONK_VERSION),0.1.0_beta6)
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 # Upstream release the sources are checked out from. honk's build script derives
 # the version it embeds from the tag in GITHUB_REF, so build.sh exports it.
@@ -104,8 +105,8 @@ define Package/honk/conffiles
 endef
 
 # apk replaces a conffile the user never edited with the packaged one, which
-# has no option enabled, so the boot setting of earlier versions is saved here
-# for files/honk.uci-defaults. The apk pre-install and pre-upgrade scripts are
+# has no option enabled, so the boot setting is saved here for
+# files/honk.uci-defaults. The apk pre-install and pre-upgrade scripts are
 # made from this (pre-upgrade without the shebang line, after PKG_UPGRADE=1).
 define Package/honk/preinst
 #!/bin/sh
@@ -116,12 +117,15 @@ exit 0
 endef
 
 # With apk this runs after default_postinst, in post-install and, sourced, in
-# post-upgrade. The restart picks up a new binary of an enabled service; the
-# init script's package guard keeps it from starting a disabled one.
+# post-upgrade, after uci-defaults has set option enabled. The restart picks
+# up a new binary of an enabled service; the init script's package guard keeps
+# default_postinst from starting a disabled one.
 define Package/honk/postinst
 #!/bin/sh
 [ -z "$${IPKG_INSTROOT}" ] || exit 0
-/etc/init.d/honk enabled && /etc/init.d/honk restart
+case "$$(uci -q get honk.config.enabled)" in
+1|on|true|yes|enabled) /etc/init.d/honk restart ;;
+esac
 exit 0
 endef
 
