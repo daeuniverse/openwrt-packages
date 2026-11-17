@@ -39,7 +39,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=honk
 PKG_VERSION:=$(if $(HONK_VERSION),$(HONK_VERSION),0.1.0_beta6)
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 # Upstream release the sources are checked out from. honk's build script derives
 # the version it embeds from the tag in GITHUB_REF, so build.sh exports it.
