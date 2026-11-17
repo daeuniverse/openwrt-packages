@@ -56,6 +56,11 @@ dns {
 }
 
 routing {
+    # dnsmasq is the local DNS upstream. Its own queries leave through the WAN
+    # hook; without this rule honk would intercept them and send them back to
+    # dnsmasq, a loop that times out every lookup.
+    pname(dnsmasq) -> direct(must)
+
     # Start with everything direct; add proxy groups and rules above this
     # fallback once nodes are configured.
     fallback: direct
