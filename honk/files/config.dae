@@ -48,7 +48,9 @@ dns {
             fallback: local
         }
         response {
-            fallback: local
+            # accept the answer; naming an upstream here re-queries it, and
+            # naming the request's own upstream is a cycle that fails every query
+            fallback: accept
         }
     }
 }
