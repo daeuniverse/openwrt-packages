@@ -1,26 +1,25 @@
-# Moves the boot setting of honk from the UCI option 'enabled' of earlier
-# versions to the rc.d link of its init script. Run once by the package scripts
-# (default_postinst sources it in a subshell, pkgname set) or on the first boot
-# of a firmware image that contains the package (pkgname empty). Never on the
-# build host, where /etc/init.d would be the host's.
+# Sets the UCI option enabled, which decides whether honk starts at boot, and
+# enables the rc.d link that runs the init script's boot. Run by the package
+# scripts (default_postinst sources it in a subshell, pkgname set) and on the
+# first boot of a firmware image that contains the package (pkgname empty).
+# Never on the build host, where /etc/init.d would be the host's.
 if [ -z "$IPKG_INSTROOT" ]; then
-	enabled="$(uci -q get honk.config.enabled)"
-	# the preinst script of the package saved the old value before apk replaced
-	# an unedited /etc/config/honk, which no longer has the option
-	if [ -z "$enabled" ] && [ -f /tmp/honk-autostart ]; then
-		enabled="$(cat /tmp/honk-autostart)"
+	# An option already set is the user's choice, also one that sysupgrade kept
+	if [ -z "$(uci -q get honk.config.enabled)" ]; then
+		if [ -f /tmp/honk-autostart ]; then
+			# saved by the preinst script before apk replaced an unedited
+			# /etc/config/honk of a version that kept the option
+			enabled="$(cat /tmp/honk-autostart)"
+		elif [ -n "$pkgname" ] && /etc/init.d/honk enabled; then
+			# an apk upgrade from a version whose boot setting was the rc.d link
+			enabled=1
+		else
+			# a fresh install, or a new image: off until the user turns it on
+			enabled=0
+		fi
+		uci -q set honk.config.enabled="$enabled"
+		uci commit honk
 	fi
 	rm -f /tmp/honk-autostart
-	if [ -n "$enabled" ]; then
-		case "$enabled" in
-		1|on|true|yes|enabled) /etc/init.d/honk enable ;;
-		*) /etc/init.d/honk disable ;;
-		esac
-		uci -q delete honk.config.enabled
-		uci commit honk
-	elif [ -z "$pkgname" ]; then
-		# an image build enables every init script, but a new honk stays off
-		# until the user turns it on
-		/etc/init.d/honk disable
-	fi
+	/etc/init.d/honk enable
 fi

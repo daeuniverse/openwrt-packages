@@ -9,6 +9,7 @@ STOP=01
 # UCI (/etc/config/honk):
 #
 #   config honk 'config'
+#       option enabled '0'
 #       option config_file '/etc/honk/config.dae'
 #       option store 'file'
 #       option data_dir '/etc/honk/data'
@@ -19,8 +20,12 @@ STOP=01
 # refuses that unless global.data_dir equals data_dir and clash_api has no
 # external_controller. /etc/honk/data is the directory sysupgrade keeps.
 #
-# Starting at boot is the rc.d link, not a UCI option: /etc/init.d/honk enable
-# or disable. Start, stop and restart always work.
+# enabled decides whether the service starts at boot (1) or not (0). The
+# package ships no such option; its uci-defaults script sets it, to 0 on a fresh
+# install and on the first boot of a new image, and keeps the user's value
+# across upgrades and a sysupgrade that keeps the settings. The rc.d link stays
+# enabled, so boot runs at every boot and checks the option. Start, stop and
+# restart always work.
 #
 # honk-core runs as root: its eBPF datapath creates the dae0 link pair and the
 # daens network namespace, attaches TC programs and may open NFQUEUE.
@@ -42,19 +47,27 @@ read_store() {
 	esac
 }
 
+# Whether option enabled asks for a start at boot
+start_at_boot() {
+	case "$(uci -q get "$CONF.config.enabled")" in
+	1|on|true|yes|enabled) return 0 ;;
+	esac
+	return 1
+}
+
+boot() {
+	start_at_boot || return 0
+	start "$@"
+}
+
 start_service() {
 	config_load "$CONF"
 
-	# The package scripts of apk start every init script their package ships: a
-	# fresh install after enabling it (it stays off until the user turns it on),
-	# an upgrade only if it was on. They export pkgname, and PKG_UPGRADE=1 on an
-	# upgrade; a start by hand sets neither.
+	# The package scripts of apk start every init script their package ships,
+	# after an install and after an upgrade; only an enabled service starts then.
+	# They export pkgname, a start by hand does not.
 	if [ "$pkgname" = "$CONF" ]; then
-		if [ "$PKG_UPGRADE" != 1 ]; then
-			disable
-			return 1
-		fi
-		enabled || return 1
+		start_at_boot || return 1
 	fi
 
 	# dae creates the same dae0 link pair and daens namespace and hooks the

@@ -13,10 +13,11 @@
 #
 # The package also installs an OpenWrt procd init script (files/dae.init), its
 # UCI configuration (files/dae.config) and the upstream example.dae as the
-# initial /etc/dae/config.dae. The service is disabled by default; run
-# /etc/init.d/dae enable and start it after adapting the configuration to the
-# device. files/dae.uci-defaults moves the boot setting of earlier versions
-# (UCI option enabled) to that rc.d link.
+# initial /etc/dae/config.dae. The service does not start at boot by default:
+# after adapting the configuration to the device, set the UCI option
+# dae.config.enabled to 1 and start it. files/dae.uci-defaults sets that
+# option, keeping the boot setting of earlier versions (the option, or the
+# rc.d link of the versions that used it).
 #
 # This file is free software, licensed under the GNU General Public License v3
 # or later.
@@ -30,7 +31,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dae
 PKG_VERSION:=$(if $(DAE_VERSION),$(DAE_VERSION),2.1.2)
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_LICENSE:=AGPL-3.0-only
 PKG_LICENSE_FILES:=LICENSE
@@ -93,8 +94,8 @@ define Package/dae/conffiles
 endef
 
 # apk replaces a conffile the user never edited with the packaged one, which
-# has no option enabled, so the boot setting of earlier versions is saved here
-# for files/dae.uci-defaults. The apk pre-install and pre-upgrade scripts are
+# has no option enabled, so the boot setting is saved here for
+# files/dae.uci-defaults. The apk pre-install and pre-upgrade scripts are
 # made from this (pre-upgrade without the shebang line, after PKG_UPGRADE=1).
 define Package/dae/preinst
 #!/bin/sh
@@ -105,12 +106,15 @@ exit 0
 endef
 
 # With apk this runs after default_postinst, in post-install and, sourced, in
-# post-upgrade. The restart picks up a new binary of an enabled service; the
-# init script's package guard keeps it from starting a disabled one.
+# post-upgrade, after uci-defaults has set option enabled. The restart picks
+# up a new binary of an enabled service; the init script's package guard keeps
+# default_postinst from starting a disabled one.
 define Package/dae/postinst
 #!/bin/sh
 [ -z "$${IPKG_INSTROOT}" ] || exit 0
-/etc/init.d/dae enabled && /etc/init.d/dae restart
+case "$$(uci -q get dae.config.enabled)" in
+1|on|true|yes|enabled) /etc/init.d/dae restart ;;
+esac
 exit 0
 endef
 
