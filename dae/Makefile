@@ -9,7 +9,7 @@
 # Nothing is downloaded while building: dae's own Makefile drives the build
 # (pure Go, CGO_ENABLED=0, clang for the bpf2go objects, see build.sh), and the
 # version the binary reports is passed in as DAE_VERSION (the release tag
-# without its leading "v", e.g. 2.1.2).
+# without its leading "v", e.g. 2.1.3).
 #
 # The package also installs an OpenWrt procd init script (files/dae.init), its
 # UCI configuration (files/dae.config) and the upstream example.dae as the
@@ -30,8 +30,8 @@ PKG_DIR:=$(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dae
-PKG_VERSION:=$(if $(DAE_VERSION),$(DAE_VERSION),2.1.2)
-PKG_RELEASE:=2
+PKG_VERSION:=$(if $(DAE_VERSION),$(DAE_VERSION),2.1.3)
+PKG_RELEASE:=1
 
 PKG_LICENSE:=AGPL-3.0-only
 PKG_LICENSE_FILES:=LICENSE
